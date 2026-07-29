@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('permissions', function (Blueprint $table) {
+        Schema::create('permissions', function (Blueprint $table): void {
             $table->id();
 
             $table->string('name');
@@ -20,7 +20,7 @@ return new class extends Migration
             $table->unique(['name', 'guard_name']);
         });
 
-        Schema::create('roles', function (Blueprint $table) {
+        Schema::create('roles', function (Blueprint $table): void {
             $table->id();
 
             $table->string('name');
@@ -32,7 +32,7 @@ return new class extends Migration
             $table->unique(['name', 'guard_name']);
         });
 
-        Schema::create('model_has_permissions', function (Blueprint $table) {
+        Schema::create('model_has_permissions', function (Blueprint $table): void {
             $table->foreignId('permission_id')->constrained()->cascadeOnDelete();
 
             $table->string('model_type');
@@ -51,7 +51,7 @@ return new class extends Migration
             $table->index(['model_id', 'model_type']);
         });
 
-        Schema::create('model_has_roles', function (Blueprint $table) {
+        Schema::create('model_has_roles', function (Blueprint $table): void {
             $table->foreignId('role_id')->constrained()->cascadeOnDelete();
 
             $table->string('model_type');
@@ -70,7 +70,7 @@ return new class extends Migration
             $table->index(['model_id', 'model_type']);
         });
 
-        Schema::create('role_has_permissions', function (Blueprint $table) {
+        Schema::create('role_has_permissions', function (Blueprint $table): void {
             $table->foreignId('permission_id')->constrained()->cascadeOnDelete();
 
             $table->foreignId('role_id')->constrained()->cascadeOnDelete();
@@ -81,7 +81,7 @@ return new class extends Migration
             ]);
         });
 
-        Schema::create('model_access_controls', function (Blueprint $table) {
+        Schema::create('model_access_controls', function (Blueprint $table): void {
             $table->id();
 
             $table->morphs('model');
