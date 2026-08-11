@@ -4,39 +4,64 @@ declare(strict_types=1);
 
 namespace Rimba\Who\Models;
 
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Rimba\Who\Enums\SecurityLevel;
 
-#[Fillable([
+#[Hidden([
     'two_factor_secret',
     'two_factor_recovery_codes',
-    'two_factor_confirmed_at',
     'face_descriptor',
-    'setup_completed',
-    'is_admin',
-    'is_staff',
-    'last_login',
-    'last_face_auth',
 ])]
-#[Table(name: 'user_auth')]
 class UserAuth extends Model
 {
+    protected $guarded = [];
+
+    protected function casts(): array
+    {
+        return [
+            'two_factor_secret' => 'encrypted',
+            'two_factor_recovery_codes' => 'encrypted:array',
+            'two_factor_confirmed_at' => 'datetime',
+            'face_descriptor' => 'encrypted:array',
+            'last_login_at' => 'datetime',
+            'last_face_auth_at' => 'datetime',
+            'setup_completed' => 'boolean',
+        ];
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(config('auth.providers.users.model'));
     }
 
-    protected function casts(): array
+    public function hasTwoFactor(): bool
     {
-        return [
-            'two_factor_confirmed_at' => 'datetime',
-            'last_login' => 'datetime',
-            'last_face_auth' => 'datetime',
-            'setup_completed' => 'boolean',
-            'is_admin' => 'boolean',
-            'is_staff' => 'boolean',
-        ];
+        return $this->two_factor_confirmed_at !== null;
+    }
+
+    public function hasValidFaceAuth(): bool
+    {
+        return $this->last_face_auth_at?->greaterThan(
+            now()->subMinutes((int) config('siapa.security.face_auth_timeout_minutes', 10)),
+        ) ?? false;
+    }
+
+    public function securityLevel(): SecurityLevel
+    {
+        if (! auth()->check()) {
+            return SecurityLevel::Public;
+        }
+
+        if (! $this->hasTwoFactor()) {
+            return SecurityLevel::Authenticated;
+        }
+
+        if (! $this->hasValidFaceAuth()) {
+            return SecurityLevel::TwoFactorVerified;
+        }
+
+        return SecurityLevel::FaceVerified;
     }
 }
