@@ -30,7 +30,7 @@ class Login extends BaseLogin
     {
         $data = $this->form->getState();
         $authenticationResult = app(AuthenticateUser::class)->handle(
-            identifier: (string) ($data['email'] ?? ''),
+            identifier: (string) ($data['login'] ?? ''),
             password: (string) ($data['password'] ?? ''),
             remember: (bool) ($data['remember'] ?? false),
         );
@@ -52,10 +52,20 @@ class Login extends BaseLogin
 
     protected function getUsernameFormComponent(): Component
     {
-        return TextInput::make('email')
+        return TextInput::make('login')
             ->label('Username or email')
             ->required()
             ->autocomplete()
             ->autofocus();
+    }
+
+    protected function getCredentialsFromFormData(array $data): array
+    {
+        $login_type = filter_var($data['login'], FILTER_VALIDATE_EMAIL) ? 'email' : 'name';
+
+        return [
+            $login_type => $data['login'],
+            'password' => $data['password'],
+        ];
     }
 }
