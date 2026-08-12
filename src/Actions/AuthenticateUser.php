@@ -7,6 +7,7 @@ namespace Rimba\Who\Actions;
 use Illuminate\Support\Facades\Auth;
 use Rimba\Who\Contracts\AuthOrchestratorContract;
 use Rimba\Who\Models\UserAuth;
+use Rimba\Who\Services\UserRoleResolver;
 use Rimba\Who\Support\AuthenticationResult;
 
 final readonly class AuthenticateUser
@@ -19,8 +20,9 @@ final readonly class AuthenticateUser
 
         if ($authenticationResult->succeeded() && $authenticationResult->user) {
             Auth::login($authenticationResult->user, $remember);
+            app(UserRoleResolver::class)
+                ->sync($authenticationResult->user);
             session()->regenerate();
-
             UserAuth::query()->updateOrCreate(
                 ['user_id' => $authenticationResult->user->getAuthIdentifier()],
                 [

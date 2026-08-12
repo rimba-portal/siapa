@@ -6,16 +6,15 @@ namespace Rimba\Who\Services;
 
 use App\Models\User;
 use Rimba\Attributing\Models\AttributeDefinition;
-use Rimba\People\Models\Staff;
 use Spatie\Permission\Models\Role;
 
-class RoleSyncService
+class UserRoleResolver
 {
-    public function syncFromStaff(Staff $staff): void
+    public function sync(User $user): void
     {
-        $user = $staff->user;
+        $staff = $user->staff;
 
-        if (! $user instanceof User) {
+        if (! $staff) {
             return;
         }
 
@@ -46,7 +45,7 @@ class RoleSyncService
 
         $manualRoles = $user->roles
             ->pluck('name')
-            ->reject(function (string $roleName) use ($abacKeys): bool {
+            ->reject(function ($roleName) use ($abacKeys): bool {
 
                 foreach ($abacKeys as $abacKey) {
                     if (str_starts_with($roleName, $abacKey.'.')) {
