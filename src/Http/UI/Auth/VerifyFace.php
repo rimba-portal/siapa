@@ -10,7 +10,7 @@ use Rimba\Who\Contracts\PanelAccessResolverContract;
 
 class VerifyFace extends SimplePage
 {
-    protected string $view = 'siapa::auth.verify-face';
+    protected string $view = 'bites::auth.verify-face';
 
     public function faceMatched(): void
     {

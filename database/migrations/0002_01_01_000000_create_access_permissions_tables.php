@@ -38,16 +38,16 @@ return new class extends Migration
             $table->string('model_type');
             $table->unsignedBigInteger('model_id');
 
-            $table->foreignId('team_id');
+            // $table->foreignId('team_id');
 
             $table->primary([
-                'team_id',
+                // 'team_id',
                 'permission_id',
                 'model_id',
                 'model_type',
             ]);
 
-            $table->index('team_id');
+            // $table->index('team_id');
             $table->index(['model_id', 'model_type']);
         });
 
@@ -57,16 +57,16 @@ return new class extends Migration
             $table->string('model_type');
             $table->unsignedBigInteger('model_id');
 
-            $table->foreignId('team_id');
+            // $table->foreignId('team_id');
 
             $table->primary([
-                'team_id',
+                // 'team_id',
                 'role_id',
                 'model_id',
                 'model_type',
             ]);
 
-            $table->index('team_id');
+            // $table->index('team_id');
             $table->index(['model_id', 'model_type']);
         });
 

@@ -10,7 +10,7 @@ use Filament\Schemas\Schema;
 
 class Register extends BaseRegister
 {
-    protected string $view = 'siapa::auth.register';
+    protected string $view = 'bites::auth.register';
 
     public function form(Schema $schema): Schema
     {

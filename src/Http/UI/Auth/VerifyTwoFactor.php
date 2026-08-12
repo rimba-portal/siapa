@@ -13,7 +13,7 @@ use Rimba\Who\Models\UserAuth;
 
 class VerifyTwoFactor extends SimplePage
 {
-    protected string $view = 'siapa::auth.verify-two-factor';
+    protected string $view = 'bites::auth.verify-two-factor';
 
     public ?array $data = [];
 

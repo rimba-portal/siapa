@@ -8,5 +8,5 @@ use Filament\Auth\Pages\PasswordReset\RequestPasswordReset as BaseRequestPasswor
 
 class RequestPasswordReset extends BaseRequestPasswordReset
 {
-    protected string $view = 'siapa::auth.forgot-password';
+    protected string $view = 'bites::auth.forgot-password';
 }
