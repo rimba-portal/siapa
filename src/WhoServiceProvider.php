@@ -46,7 +46,7 @@ class WhoServiceProvider extends BitesServiceProvider
 
         $this->app->singleton(function ($app): AuthOrchestratorContract {
             $providers = [];
-            foreach (config('bites-auth.authentication.providers', ['local']) as $name) {
+            foreach (config('bites_auth.authentication.providers', ['local']) as $name) {
                 if ($name === 'local') {
                     $providers[] = $app->make(LocalAuthService::class);
                 } elseif ($app->bound("bites_auth.auth-provider.{$name}")) {
