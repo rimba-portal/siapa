@@ -64,6 +64,7 @@ class WhoServiceProvider extends BitesServiceProvider
         if (! is_dir($commandDir)) {
             return;
         }
+
         $commands = [];
         foreach (glob($commandDir.'/*.php') as $file) {
             $className = basename($file, '.php');
@@ -75,6 +76,7 @@ class WhoServiceProvider extends BitesServiceProvider
                 }
             }
         }
+
         if ($commands !== []) {
             $this->commands($commands);
         }
