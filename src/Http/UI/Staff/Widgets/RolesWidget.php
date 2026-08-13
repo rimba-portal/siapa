@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace Rimba\Who\Http\UI\Staff\Widgets;
 
-use App\Models\User;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\Auth;
 
 class RolesWidget extends Widget
 {
-    protected string $view = 'filament.staff.widgets.roles-widget-mini';
+    protected string $view = 'bites::staff.roles-widget';
 
     protected int|string|array $columnSpan = 1;
 
@@ -22,6 +21,7 @@ class RolesWidget extends Widget
     public function getRoles(): array
     {
         $user = Auth::user();
+
         return $user->staff->getRoleNames()->toArray() ?? [];
     }
 }
