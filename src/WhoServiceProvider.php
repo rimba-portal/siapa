@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Rimba\Who;
 
 use Rimba\Base\Services\BitesServiceProvider;
+use Rimba\Who\Actions\AuthenticateLocalUser;
 use Rimba\Who\Contracts\FaceVerifierContract;
 use Rimba\Who\Contracts\IdentityAuthenticatorContract;
 use Rimba\Who\Contracts\PanelAccessResolverContract;
@@ -12,6 +13,8 @@ use Rimba\Who\Contracts\SecurityContextContract;
 use Rimba\Who\Contracts\StaffResolverContract;
 use Rimba\Who\Enums\AuthenticationStatus;
 use Rimba\Who\Services\FaceAuthService;
+use Rimba\Who\Services\IdentityAuthenticatorService;
+use Rimba\Who\Services\IdentityResolverService;
 use Rimba\Who\Services\PanelAccessService;
 use Rimba\Who\Services\SecurityContextService;
 use Rimba\Who\Services\StaffResolverService;

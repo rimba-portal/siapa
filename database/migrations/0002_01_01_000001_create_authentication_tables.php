@@ -10,7 +10,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('user_auth', function (Blueprint $table): void {
+        Schema::create('user_auths', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete()->unique();
             $table->string('auth_provider', 50);
