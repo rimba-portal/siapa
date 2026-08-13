@@ -41,7 +41,7 @@ class WhoServiceProvider extends BitesServiceProvider
         $this->app->bind(StaffResolverContract::class, StaffResolverService::class);
         $this->app->bind(PanelAccessResolverContract::class, PanelAccessService::class);
         $this->app->bind(FaceVerifierContract::class, FaceAuthService::class);
-        $this->app->singleton(function ($app): AuthOrchestratorContract {
+        $this->app->singleton(AuthOrchestratorContract::class, function ($app): AuthOrchestratorContract {
             $providers = [];
             foreach (config('bites_auth.authentication.providers', ['local']) as $name) {
                 $binding = "bites_auth.auth-provider.$name";
@@ -64,7 +64,6 @@ class WhoServiceProvider extends BitesServiceProvider
         if (! is_dir($commandDir)) {
             return;
         }
-
         $commands = [];
         foreach (glob($commandDir.'/*.php') as $file) {
             $className = basename($file, '.php');
@@ -76,7 +75,6 @@ class WhoServiceProvider extends BitesServiceProvider
                 }
             }
         }
-
         if ($commands !== []) {
             $this->commands($commands);
         }
