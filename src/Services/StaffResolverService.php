@@ -13,10 +13,6 @@ final class StaffResolverService implements StaffResolverContract
     {
         $staff = $user->staff ?? null;
 
-        return [
-            'is_staff' => $staff !== null,
-            'is_tmo' => (bool) ($staff?->hasRole(config('siapa.roles.team_planner')) ?? false),
-            'is_admin' => (bool) ($staff?->hasRole(config('siapa.roles.admin')) ?? false),
-        ];
+        return ['is_staff' => $staff !== null, 'is_tmo' => (bool) ($staff?->hasRole(config('bites_auth.roles.team_planner')) ?? false), 'is_admin' => (bool) ($staff?->hasRole(config('bites_auth.roles.admin')) ?? false)];
     }
 }

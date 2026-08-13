@@ -15,34 +15,25 @@ use Rimba\Who\Enums\AuthenticationStatus;
 
 class Login extends BaseLogin
 {
-    // protected string $view = 'bites::auth.login';
     public function form(Schema $schema): Schema
     {
-        return $schema
-            ->components([
-                $this->getUsernameFormComponent(),
-                $this->getPasswordFormComponent(),
-                $this->getRememberFormComponent(),
-            ]);
+        return $schema->components([$this->getUsernameFormComponent(), $this->getPasswordFormComponent(), $this->getRememberFormComponent()]);
     }
 
     public function authenticate(): ?LoginResponse
     {
-        $data = $this->form->getState();
-        $authenticationResult = app(AuthenticateUser::class)->handle(
-            identifier: (string) ($data['login'] ?? ''),
-            password: (string) ($data['password'] ?? ''),
-            remember: (bool) ($data['remember'] ?? false),
-        );
-
+        $d = $this->form->getState();
+        $authenticationResult = app(AuthenticateUser::class)->handle((string) ($d['login'] ?? ''), (string) ($d['password'] ?? ''), (bool) ($d['remember'] ?? false));
         if ($authenticationResult->status === AuthenticationStatus::NotFound) {
-            $this->redirect(route('filament.lobby.auth.register', ['identifier' => $data['email'] ?? null]));
+            $this->redirect(route('filament.lobby.auth.register', ['identifier' => $d['login'] ?? null]));
 
             return null;
         }
 
         if (! $authenticationResult->succeeded()) {
-            throw ValidationException::withMessages(['data.email' => __('filament-panels::pages/auth/login.messages.failed')]);
+            session()->forget(['auth.pending_user_id', 'auth.pending_remember', 'siapa.two_factor_verified_at']);
+            session()->regenerateToken();
+            throw ValidationException::withMessages(['data.login' => 'Invalid username or password.']);
         }
 
         return app(LoginResponse::class);
@@ -50,20 +41,6 @@ class Login extends BaseLogin
 
     protected function getUsernameFormComponent(): Component
     {
-        return TextInput::make('login')
-            ->label('Username or email')
-            ->required()
-            ->autocomplete()
-            ->autofocus();
-    }
-
-    protected function getCredentialsFromFormData(array $data): array
-    {
-        $login_type = filter_var($data['login'], FILTER_VALIDATE_EMAIL) ? 'email' : 'name';
-
-        return [
-            $login_type => $data['login'],
-            'password' => $data['password'],
-        ];
+        return TextInput::make('login')->label('Username or email')->required()->autocomplete()->autofocus();
     }
 }

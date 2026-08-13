@@ -16,14 +16,9 @@ final readonly class SecurityContextService implements SecurityContextContract
 
     public function forUser(Authenticatable $user): SecurityContext
     {
-        $roles = $this->staffResolverContract->resolve($user);
-        $userAuth = UserAuth::query()->firstOrCreate(['user_id' => $user->getAuthIdentifier()]);
+        $r = $this->staffResolverContract->resolve($user);
+        $userAuth = UserAuth::query()->firstOrCreate(['user_id' => $user->getAuthIdentifier()], ['auth_provider' => 'local', 'auth_identifier' => (string) $user->getAuthIdentifier()]);
 
-        return new SecurityContext(
-            isStaff: $roles['is_staff'],
-            isTmo: $roles['is_tmo'],
-            isAdmin: $roles['is_admin'],
-            level: $userAuth->securityLevel(),
-        );
+        return new SecurityContext($r['is_staff'], $r['is_tmo'], $r['is_admin'], $userAuth->securityLevel());
     }
 }

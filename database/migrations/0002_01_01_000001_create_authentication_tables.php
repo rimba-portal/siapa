@@ -13,9 +13,8 @@ return new class extends Migration
         Schema::create('user_auth', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete()->unique();
-            $table->string('username')->nullable();
-            $table->string('auth_provider', 50)->nullable();
-            $table->string('auth_identifier')->nullable();
+            $table->string('auth_provider', 50);
+            $table->string('auth_identifier');
             $table->text('two_factor_secret')->nullable();
             $table->text('two_factor_recovery_codes')->nullable();
             $table->timestamp('two_factor_confirmed_at')->nullable();
@@ -24,7 +23,7 @@ return new class extends Migration
             $table->timestamp('last_face_auth_at')->nullable();
             $table->boolean('setup_completed')->default(false);
             $table->timestamps();
-            $table->index(['auth_provider', 'auth_identifier']);
+            $table->unique(['auth_provider', 'auth_identifier']);
         });
 
         Schema::create('authentication_attempts', function (Blueprint $table): void {

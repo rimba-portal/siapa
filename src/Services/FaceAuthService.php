@@ -12,9 +12,6 @@ final class FaceAuthService implements FaceVerifierContract
 {
     public function recordVerification(Authenticatable $user, ?string $ipAddress = null, ?string $userAgent = null): void
     {
-        UserAuth::query()->updateOrCreate(
-            ['user_id' => $user->getAuthIdentifier()],
-            ['last_face_auth_at' => now()],
-        );
+        UserAuth::query()->updateOrCreate(['user_id' => $user->getAuthIdentifier()], ['last_face_auth_at' => now()]);
     }
 }
