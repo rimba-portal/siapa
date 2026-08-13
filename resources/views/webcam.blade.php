@@ -1,5 +1,5 @@
 <x-dynamic-component :component="$getFieldWrapperView()" :field="$field">
-    <div 
+    <div
         x-data="{
             stream: null,
             photoUrl: null,
@@ -47,42 +47,42 @@
         class="space-y-4"
     >
         <!-- Camera Live View -->
-        <div class="relative rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 p-2 flex justify-center">
+        <div class="relative flex justify-center overflow-hidden rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-800">
             <video x-ref="video" autoplay playsinline class="w-full max-w-md rounded-lg" x-show="stream"></video>
-            
+
             <!-- Snapshot Preview -->
-            <img :src="photoUrl" x-show="photoUrl && !stream" class="w-full max-w-md rounded-lg" alt="Captured Photo">
-            
-            <div x-show="!stream && !photoUrl" class="py-16 text-center text-gray-400 dark:text-gray-500">
+            <img :src="photoUrl" x-show="photoUrl && ! stream" class="w-full max-w-md rounded-lg" alt="Captured Photo" />
+
+            <div x-show="! stream && ! photoUrl" class="py-16 text-center text-gray-400 dark:text-gray-500">
                 Webcam is turned off
             </div>
         </div>
 
         <!-- Controls -->
         <div class="flex gap-2">
-            <button 
-                type="button" 
-                @click="startCamera()" 
-                x-show="!stream"
-                class="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-500 rounded-lg shadow-sm"
+            <button
+                type="button"
+                @click="startCamera()"
+                x-show="! stream"
+                class="bg-primary-600 hover:bg-primary-500 rounded-lg px-4 py-2 text-sm font-medium text-white shadow-sm"
             >
                 Start Camera
             </button>
 
-            <button 
-                type="button" 
-                @click="takePhoto()" 
+            <button
+                type="button"
+                @click="takePhoto()"
                 x-show="stream"
-                class="px-4 py-2 text-sm font-medium text-white bg-success-600 hover:bg-success-500 rounded-lg shadow-sm"
+                class="bg-success-600 hover:bg-success-500 rounded-lg px-4 py-2 text-sm font-medium text-white shadow-sm"
             >
                 Capture Photo
             </button>
 
-            <button 
-                type="button" 
-                @click="stopCamera(); photoUrl = null; $wire.set('{{ $getStatePath() }}', null)" 
+            <button
+                type="button"
+                @click="stopCamera(); photoUrl = null; $wire.set('{{ $getStatePath() }}', null)"
                 x-show="photoUrl || stream"
-                class="px-4 py-2 text-sm font-medium text-white bg-danger-600 hover:bg-danger-500 rounded-lg shadow-sm"
+                class="bg-danger-600 hover:bg-danger-500 rounded-lg px-4 py-2 text-sm font-medium text-white shadow-sm"
             >
                 Clear
             </button>

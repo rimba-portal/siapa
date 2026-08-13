@@ -4,19 +4,18 @@
 @endphp
 
 <x-dynamic-component :component="$getFieldWrapperView()" :field="$field">
-    <div x-data="faceVerificationComponent({
+    <div
+        x-data="faceVerificationComponent({
         staffNo: @js($staffNo),
         matchThreshold: @js($matchThreshold),
     })"
-        class="rounded-lg border border-gray-200 bg-gray-50/80 p-3 dark:border-gray-800 dark:bg-gray-900/40">
+        class="rounded-lg border border-gray-200 bg-gray-50/80 p-3 dark:border-gray-800 dark:bg-gray-900/40"
+    >
         {{-- Reference Avatar --}}
-        <img id="referenceImage" x-ref="referenceImage" hidden alt="Reference Image">
+        <img id="referenceImage" x-ref="referenceImage" hidden alt="Reference Image" />
         <div class="flex items-center gap-4">
-
-
             {{-- Camera --}}
-            <div
-                class="h-24 w-24 overflow-hidden rounded-lg border border-gray-200 bg-black shadow-inner dark:border-gray-700">
+            <div class="h-24 w-24 overflow-hidden rounded-lg border border-gray-200 bg-black shadow-inner dark:border-gray-700">
                 <video x-ref="video" autoplay muted playsinline class="h-full w-full scale-x-[-1] object-cover"></video>
             </div>
 
@@ -27,14 +26,12 @@
                     <span class="font-semibold text-gray-900 dark:text-white" x-text="staffNo || 'N/A'"></span>
                 </div>
 
-                <div class="mt-1 font-semibold"
-                    :class="isMatched
-                        ?
-                        'text-success-600' :
-                        'text-gray-900 dark:text-white'"
-                    x-text="resultText"></div>
+                <div
+                    class="mt-1 font-semibold"
+                    :class="isMatched ? 'text-success-600' : 'text-gray-900 dark:text-white'"
+                    x-text="resultText"
+                ></div>
             </div>
-
         </div>
     </div>
 </x-dynamic-component>
@@ -95,7 +92,7 @@
                             this.staffNo = staffNo;
 
                             await this.loadReferenceImage(staffNo);
-                        }
+                        },
                     );
                 },
 
@@ -139,10 +136,7 @@
                     }
 
                     const detection = await faceapi
-                        .detectSingleFace(
-                            image,
-                            new faceapi.TinyFaceDetectorOptions()
-                        )
+                        .detectSingleFace(image, new faceapi.TinyFaceDetectorOptions())
                         .withFaceLandmarks()
                         .withFaceDescriptor();
 
@@ -213,10 +207,7 @@
                     }
 
                     const detection = await faceapi
-                        .detectSingleFace(
-                            this.$refs.video,
-                            new faceapi.TinyFaceDetectorOptions()
-                        )
+                        .detectSingleFace(this.$refs.video, new faceapi.TinyFaceDetectorOptions())
                         .withFaceLandmarks()
                         .withFaceDescriptor();
 
@@ -228,10 +219,7 @@
                         return;
                     }
 
-                    const distance = faceapi.euclideanDistance(
-                        this.referenceDescriptor,
-                        detection.descriptor
-                    );
+                    const distance = faceapi.euclideanDistance(this.referenceDescriptor, detection.descriptor);
 
                     this.distanceText = `Distance: ${distance.toFixed(4)}`;
 

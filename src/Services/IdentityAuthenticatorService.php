@@ -35,6 +35,6 @@ final readonly class IdentityAuthenticatorService
             }
         }
 
-return null;
+        return null;
     }
 }
