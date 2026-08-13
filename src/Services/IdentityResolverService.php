@@ -19,6 +19,6 @@ final readonly class IdentityResolverService
             }
         }
 
-return null;
+        return null;
     }
 }
