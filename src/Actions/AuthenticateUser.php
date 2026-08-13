@@ -20,8 +20,8 @@ final readonly class AuthenticateUser
 
         if ($authenticationResult->succeeded() && $authenticationResult->user) {
             Auth::login($authenticationResult->user, $remember);
-            app(UserRoleResolver::class)
-                ->sync($authenticationResult->user);
+            // app(UserRoleResolver::class)
+            //     ->sync($authenticationResult->user);
             session()->regenerate();
             UserAuth::query()->updateOrCreate(
                 ['user_id' => $authenticationResult->user->getAuthIdentifier()],

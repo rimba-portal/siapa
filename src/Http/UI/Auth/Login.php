@@ -45,9 +45,7 @@ class Login extends BaseLogin
             throw ValidationException::withMessages(['data.email' => __('filament-panels::pages/auth/login.messages.failed')]);
         }
 
-        $this->redirect(route('siapa.2fa.verify'));
-
-        return null;
+        return redirect()->intended(filament()->getPanel('staff')->getUrl());
     }
 
     protected function getUsernameFormComponent(): Component

@@ -13,6 +13,7 @@ return new class extends Migration
         Schema::create('user_auth', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete()->unique();
+            $table->string('username')->nullable();
             $table->string('auth_provider', 50)->nullable();
             $table->string('auth_identifier')->nullable();
             $table->text('two_factor_secret')->nullable();
