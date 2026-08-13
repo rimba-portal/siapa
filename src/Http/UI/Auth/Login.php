@@ -45,7 +45,7 @@ class Login extends BaseLogin
             throw ValidationException::withMessages(['data.email' => __('filament-panels::pages/auth/login.messages.failed')]);
         }
 
-        return redirect()->intended(filament()->getPanel('staff')->getUrl());
+        return app(LoginResponse::class);
     }
 
     protected function getUsernameFormComponent(): Component
