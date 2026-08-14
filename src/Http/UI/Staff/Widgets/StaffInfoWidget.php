@@ -7,9 +7,6 @@ namespace Rimba\Who\Http\UI\Staff\Widgets;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Filament\Widgets\Widget;
-use Illuminate\Support\Facades\Auth;
-use Rimba\People\Models\Staff;
-use Spatie\Permission\Models\Role;
 
 class StaffInfoWidget extends Widget
 {
@@ -39,7 +36,10 @@ class StaffInfoWidget extends Widget
         if (! $user) {
             return [
                 'user' => null,
-                'staff' => null,
+                'staffName' => '-',
+                'staff_number' => '-',
+                'jobPositionName' => '-',
+                'orgUnitName' => '-',
                 'roles' => [],
             ];
         }
@@ -50,9 +50,16 @@ class StaffInfoWidget extends Widget
 
         $staff = $user?->staff;
 
+        $agreement = $staff?->agreement;
+
+        $jobPosition = $agreement?->jobPosition;
+
         return [
             'user' => $user,
-            'staff' => $staff,
+            'staffName' => $staff?->name ?? '-',
+            'staff_number' => $staff?->staff_no ?? '-',
+            'jobPositionName' => $jobPosition?->title ?? '-',
+            'orgUnitName' => $jobPosition?->orgUnit?->name ?? '-',
             'roles' => $staff?->getRoleNames()->toArray() ?? [],
         ];
     }
