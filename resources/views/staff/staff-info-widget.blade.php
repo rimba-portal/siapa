@@ -34,5 +34,3 @@
         </form>
     </x-filament::section>
 </x-filament-widgets::widget>
-::section>
-</x-filament-widgets::widget>
