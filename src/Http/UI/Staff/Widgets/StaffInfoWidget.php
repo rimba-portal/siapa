@@ -39,36 +39,21 @@ class StaffInfoWidget extends Widget
         if (! $user) {
             return [
                 'user' => null,
-                'orgUnitName' => '-',
-                'jobPositionName' => '-',
+                'staff' => null,
+                'roles' => [],
             ];
         }
 
-        // Eager-load staff with org unit (active only) and job position
         $user = User::with([
-            'staff.orgUnit' => fn ($q) => $q->where('status', 'active'),
-            'staff.jobPosition',
+            'staff.agreement.jobPosition.orgUnit',
         ])->find($user->getKey());
-        // dd($user);
-        // dd($user?->staff?->jobPosition?->superior_id);
-        $staff_name = $user?->staff?->name;
-        $staff_number = $user?->staff?->staff_number;
-        $jobPositionName = $user?->staff?->jobPosition?->title ?? '-';
-        $orgUnitName = $user?->staff?->jobPosition?->orgUnit?->name ?? '-';
-        $reportingTo = $user?->staff?->jobPosition?->superior_id;
-        Staff::find($reportingTo);
-        // $roleids = array_values(Auth::user()->roles->pluck('id')->toArray()) ?? [];
-        // $roles = Role::withoutGlobalScopes()->whereIn('id', $roleids);
-        $roles = $user->getRoleNames()->toArray() ?? [];
 
-        // dd($superior);
+        $staff = $user?->staff;
+
         return [
             'user' => $user,
-            'staffName' => $staff_name,
-            'roles' => $roles,
-            'staff_number' => $staff_number,
-            'orgUnitName' => $orgUnitName,
-            'jobPositionName' => $jobPositionName,
+            'staff' => $staff,
+            'roles' => $staff?->getRoleNames()->toArray() ?? [],
         ];
     }
 }
