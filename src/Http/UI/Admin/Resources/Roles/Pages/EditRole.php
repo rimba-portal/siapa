@@ -1,0 +1,21 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Rimba\Who\Http\UI\Admin\Resources\Roles\Pages;
+
+use Filament\Actions\DeleteAction;
+use Filament\Resources\Pages\EditRecord;
+use Rimba\Who\Http\UI\Admin\Resources\Roles\RoleResource;
+
+class EditRole extends EditRecord
+{
+    protected static string $resource = RoleResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            DeleteAction::make(),
+        ];
+    }
+}
