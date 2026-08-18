@@ -23,7 +23,17 @@ class Login extends BaseLogin
     public function authenticate(): ?LoginResponse
     {
         $d = $this->form->getState();
-        $authenticationResult = app(AuthenticateUser::class)->handle((string) ($d['login'] ?? ''), (string) ($d['password'] ?? ''), (bool) ($d['remember'] ?? false));
+        $identifier = trim(
+            strtolower(
+                (string) ($d['login'] ?? '')
+            )
+        );
+
+        $authenticationResult = app(AuthenticateUser::class)->handle(
+            $identifier,
+            (string) ($d['password'] ?? ''),
+            (bool) ($d['remember'] ?? false),
+        );
         if ($authenticationResult->status === AuthenticationStatus::NotFound) {
             $this->redirect(route('filament.lobby.auth.register', ['identifier' => $d['login'] ?? null]));
 

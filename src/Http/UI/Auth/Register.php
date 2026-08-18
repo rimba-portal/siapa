@@ -10,6 +10,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Auth;
 use Rimba\Who\Actions\RegisterUser;
+use Rimba\Who\Models\UserAuth;
 
 class Register extends BaseRegister
 {
@@ -19,7 +20,7 @@ class Register extends BaseRegister
     {
         return $schema->components([
             TextInput::make('name')->required()->maxLength(255),
-            TextInput::make('username')->required()->unique(config('auth.providers.users.model'))->maxLength(255),
+            TextInput::make('username')->required()->unique(UserAuth::class, 'auth_identifier')->maxLength(255),
             $this->getEmailFormComponent(),
             $this->getPasswordFormComponent(),
             $this->getPasswordConfirmationFormComponent(),

@@ -7,6 +7,7 @@ namespace Rimba\Who\Actions;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 use Rimba\Who\Models\UserAuth;
 
 final readonly class RegisterUser
@@ -21,6 +22,7 @@ final readonly class RegisterUser
         string $password,
         string $authIdentifier,
     ): Authenticatable {
+
         $model = config('auth.providers.users.model');
 
         return DB::transaction(function () use (
@@ -30,6 +32,34 @@ final readonly class RegisterUser
             $password,
             $authIdentifier,
         ) {
+
+            $existingUser = $model::query()
+                ->whereRaw(
+                    'LOWER(email) = ?',
+                    [mb_strtolower($email)]
+                )
+                ->first();
+
+            if ($existingUser) {
+                throw ValidationException::withMessages([
+                    'email' => 'Email already exists.',
+                ]);
+            }
+
+            $existingAuth = UserAuth::query()
+                ->where('auth_provider', 'local')
+                ->where(
+                    'auth_identifier',
+                    strtolower($authIdentifier)
+                )
+                ->exists();
+
+            if ($existingAuth) {
+                throw ValidationException::withMessages([
+                    'username' => 'Username already exists.',
+                ]);
+            }
+
             $user = $model::query()->create([
                 'name' => $name,
                 'email' => $email,

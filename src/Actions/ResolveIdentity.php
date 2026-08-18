@@ -11,7 +11,7 @@ final class ResolveIdentity
 {
     public function handle(string $identifier): IdentityResolutionResult
     {
-        $identifier = trim($identifier);
+        $identifier = strtolower(trim($identifier));
         if (filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
             $model = config('auth.providers.users.model');
             $user = $model::query()->whereRaw('LOWER(email) = ?', [mb_strtolower($identifier)])->first();
