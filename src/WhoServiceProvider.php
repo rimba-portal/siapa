@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Rimba\Who;
 
+use Filament\Auth\Http\Responses\Contracts\LoginResponse;
 use Rimba\Base\Services\BitesServiceProvider;
 use Rimba\Who\Actions\AuthenticateLocalUser;
+use Rimba\Who\Auth\Responses\LoginResponse as WhoLoginResponse;
 use Rimba\Who\Contracts\FaceVerifierContract;
 use Rimba\Who\Contracts\IdentityAuthenticatorContract;
 use Rimba\Who\Contracts\PanelAccessResolverContract;
@@ -59,6 +61,7 @@ class WhoServiceProvider extends BitesServiceProvider
         });
         $this->app->singleton(IdentityResolverService::class, fn ($app): IdentityResolverService => new IdentityResolverService($this->resolveTagged($app, 'bites_auth.external-resolver')));
         $this->app->singleton(IdentityAuthenticatorService::class, fn ($app): IdentityAuthenticatorService => new IdentityAuthenticatorService($this->resolveTagged($app, 'bites_auth.authenticator')));
+        $this->app->singleton(LoginResponse::class, WhoLoginResponse::class);
         $this->app->tag(['bites_auth.authenticator.local'], 'bites_auth.authenticator');
         $this->app->bind(SecurityContextContract::class, SecurityContextService::class);
         $this->app->bind(StaffResolverContract::class, StaffResolverService::class);
