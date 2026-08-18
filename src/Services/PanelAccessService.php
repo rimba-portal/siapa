@@ -19,15 +19,26 @@ final readonly class PanelAccessService implements PanelAccessResolverContract
         $securityContext = $this->securityContextContract->forUser($user);
 
         return match ($panelId) {
-            PanelId::Lobby->value => true,PanelId::Staff->value => $securityContext->isStaff,PanelId::StaffSensitive->value => $securityContext->isStaff && $securityContext->level === SecurityLevel::FaceVerified,PanelId::Team->value => $securityContext->isStaff && $securityContext->isTmo && $securityContext->level === SecurityLevel::FaceVerified,PanelId::Admin->value => $securityContext->isStaff && $securityContext->isAdmin && $securityContext->level === SecurityLevel::FaceVerified,default => false
+            PanelId::Lobby->value => true,
+            PanelId::Staff->value => $securityContext->isStaff,
+            PanelId::StaffSensitive->value => $securityContext->isStaff && $securityContext->level === SecurityLevel::FaceVerified,
+            PanelId::Team->value => $securityContext->isStaff && $securityContext->isTmo && $securityContext->level === SecurityLevel::FaceVerified,
+            PanelId::Admin->value => $securityContext->isStaff && $securityContext->isAdmin && $securityContext->level === SecurityLevel::FaceVerified,
+            default => false
         };
     }
 
     public function destinationFor(Authenticatable $user): string
     {
-        foreach ([PanelId::Admin, PanelId::Team, PanelId::StaffSensitive, PanelId::Staff] as $p) {
-            if ($this->canAccess($user, $p->value)) {
-                return $p->value;
+        foreach (
+            [
+                PanelId::Admin,
+                PanelId::Team,
+                PanelId::Staff,
+            ] as $panel
+        ) {
+            if ($this->canAccess($user, $panel->value)) {
+                return $panel->value;
             }
         }
 
