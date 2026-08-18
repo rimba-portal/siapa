@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Rimba\Who\Http\UI\Auth;
 
-use Filament\Auth\Http\Responses\Contracts\LoginResponse;
 use Filament\Auth\Pages\Login as BaseLogin;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Schema;
 use Illuminate\Validation\ValidationException;
 use Rimba\Who\Actions\AuthenticateUser;
+use Rimba\Who\Auth\Responses\LoginResponse;
 use Rimba\Who\Enums\AuthenticationStatus;
 
 class Login extends BaseLogin

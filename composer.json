@@ -12,7 +12,6 @@
     "require": {
         "php": "^8.3",
         "directorytree/ldaprecord-laravel": "^3.4",
-        "pragmarx/google2fa": "^9.0",
         "rimba/asas": "^1.0"
     },
     "extra": {
