@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Rimba\Who\Http\UI\Auth;
 
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\SimplePage;
+use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Rimba\Who\Models\AuthenticationAttempt;
@@ -16,6 +18,8 @@ class ResetPassword extends SimplePage
     protected string $view = 'bites::auth.reset-password';
 
     public string $recoveryToken = '';
+
+    public ?array $data = [];
 
     public function mount(
         ?string $token = null,
@@ -35,6 +39,22 @@ class ResetPassword extends SimplePage
         $this->form->fill([
             'email' => $email,
         ]);
+    }
+
+    public function form(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                TextInput::make('password')
+                    ->password()
+                    ->required()
+                    ->confirmed(),
+
+                TextInput::make('password_confirmation')
+                    ->password()
+                    ->required(),
+            ])
+            ->statePath('data');
     }
 
     // public function resetPassword(): ?PasswordResetResponse

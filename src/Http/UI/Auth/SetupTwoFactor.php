@@ -16,10 +16,13 @@ class SetupTwoFactor extends SimplePage
 
     public function mount(): void
     {
-        $userAuth = UserAuth::query()
-            ->firstOrCreate([
-                'user_id' => auth()->id(),
-            ]);
+        $userAuth = UserAuth::query()->firstOrCreate(
+            ['user_id' => auth()->id()],
+            [
+                'auth_provider' => 'local',
+                'auth_identifier' => auth()->user()->email,
+            ]
+        );
 
         if (blank($userAuth->totp_secret)) {
             $userAuth->update([
