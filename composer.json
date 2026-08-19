@@ -11,7 +11,7 @@
     ],
     "require": {
         "php": "^8.3",
-        "directorytree/ldaprecord-laravel": "^3.4",
+        "directorytree/ldaprecord-laravel": "^4.0",
         "rimba/asas": "^1.3"
     },
     "extra": {
