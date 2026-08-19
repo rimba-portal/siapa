@@ -12,7 +12,7 @@ use Rimba\Who\Models\UserAuth;
 
 class SetupTwoFactor extends SimplePage
 {
-    protected string $view = 'bites::auth.setup-two-factor';
+    // protected string $view = 'bites::auth.setup-two-factor';
 
     public ?array $data = [];
 

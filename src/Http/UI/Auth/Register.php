@@ -14,7 +14,7 @@ use Rimba\Who\Models\UserAuth;
 
 class Register extends BaseRegister
 {
-    protected string $view = 'bites::auth.register';
+    // protected string $view = 'bites::auth.register';
 
     public function form(Schema $schema): Schema
     {
