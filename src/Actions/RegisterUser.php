@@ -6,7 +6,6 @@ namespace Rimba\Who\Actions;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Rimba\Who\Models\UserAuth;
 
@@ -63,7 +62,7 @@ final readonly class RegisterUser
             $user = $model::query()->create([
                 'name' => $name,
                 'email' => $email,
-                'password' => Hash::make($password),
+                'password' => $password,
             ]);
 
             UserAuth::query()->create([
