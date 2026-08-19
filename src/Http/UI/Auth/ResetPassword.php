@@ -13,6 +13,8 @@ use Rimba\Who\Models\UserAuth;
 
 class ResetPassword extends SimplePage
 {
+    protected string $view = 'bites::auth.reset-password';
+
     public string $recoveryToken = '';
 
     public function mount(
@@ -113,17 +115,17 @@ class ResetPassword extends SimplePage
 
         abort_unless(
             $verified === true
-            && filled($userAuthId)
-            && filled($expectedHash)
-            && filled($expiresAt)
-            && now()->timestamp <= (int) $expiresAt
-            && hash_equals(
-                (string) $expectedHash,
-                hash(
-                    'sha256',
-                    $this->recoveryToken,
+                && filled($userAuthId)
+                && filled($expectedHash)
+                && filled($expiresAt)
+                && now()->timestamp <= (int) $expiresAt
+                && hash_equals(
+                    (string) $expectedHash,
+                    hash(
+                        'sha256',
+                        $this->recoveryToken,
+                    ),
                 ),
-            ),
             403,
             'The password reset session is invalid or expired.',
         );

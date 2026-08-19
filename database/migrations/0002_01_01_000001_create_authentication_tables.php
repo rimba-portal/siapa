@@ -49,6 +49,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('authentication_attempts');
-        Schema::dropIfExists('user_auth');
+        Schema::dropIfExists('user_auths');
     }
 };

@@ -12,29 +12,56 @@ use Rimba\Who\Models\UserAuth;
 
 class SetupTwoFactor extends SimplePage
 {
-    // protected string $view = 'bites::auth.setup-two-factor';
-
     public ?array $data = [];
 
     public function mount(): void
     {
-        $userAuth = UserAuth::query()->firstOrCreate(['user_id' => auth()->id()]);
-        $userAuth->two_factor_secret ??= app(Google2FA::class)->generateSecretKey();
-        $userAuth->save();
+        $userAuth = UserAuth::query()
+            ->firstOrCreate([
+                'user_id' => auth()->id(),
+            ]);
+
+        if (blank($userAuth->totp_secret)) {
+            $userAuth->update([
+                'totp_secret' => app(Google2FA::class)
+                    ->generateSecretKey(),
+            ]);
+        }
     }
 
     public function form(Schema $schema): Schema
     {
-        return $schema->components([
-            TextInput::make('code')->label('Authenticator code')->required()->length(6),
-        ])->statePath('data');
+        return $schema
+            ->components([
+                TextInput::make('code')
+                    ->label('Authenticator code')
+                    ->required()
+                    ->numeric()
+                    ->length(6),
+            ])
+            ->statePath('data');
     }
 
     public function confirm(): void
     {
-        $userAuth = UserAuth::query()->where('user_id', auth()->id())->firstOrFail();
-        abort_unless(app(Google2FA::class)->verifyKey((string) $userAuth->two_factor_secret, (string) $this->data['code']), 422);
-        $userAuth->update(['two_factor_confirmed_at' => now(), 'setup_completed' => true]);
-        $this->redirect(route('siapa.face.verify'));
+        $userAuth = UserAuth::query()
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+
+        abort_unless(
+            app(Google2FA::class)->verifyKey(
+                (string) $userAuth->totp_secret,
+                (string) $this->data['code']
+            ),
+            422
+        );
+
+        $userAuth->update([
+            'setup_completed' => true,
+        ]);
+
+        $this->redirect(
+            route('siapa.face.verify')
+        );
     }
 }

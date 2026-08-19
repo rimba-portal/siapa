@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Rimba\Who\Auth\Responses;
+namespace Rimba\Who\Http\UI\Auth\Responses;
 
 use Filament\Auth\Http\Responses\Contracts\LoginResponse as LoginResponseContract;
 use Filament\Facades\Filament;

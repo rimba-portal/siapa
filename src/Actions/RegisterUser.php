@@ -72,9 +72,8 @@ final readonly class RegisterUser
                 'user_id' => $user->getAuthIdentifier(),
                 'auth_provider' => 'local',
                 'auth_identifier' => strtolower($authIdentifier),
-                'two_factor_secret' => null,
-                'two_factor_recovery_codes' => null,
-                'two_factor_confirmed_at' => null,
+                'totp_secret' => null,
+                'totp_recovery_codes' => null,
                 'setup_completed' => false,
             ]);
 

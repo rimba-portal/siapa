@@ -100,7 +100,7 @@ class RequestPasswordReset extends BaseRequestPasswordReset
                 ->first();
         }
 
-        return $query
+        return $builder
             ->where(
                 'auth_identifier',
                 $identifier,
