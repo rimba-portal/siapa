@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Rimba\Who\Actions;
 
+use App\Models\User;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Rimba\Who\Models\UserAuth;
 
@@ -37,7 +39,7 @@ final readonly class RegisterUser
                     'LOWER(email) = ?',
                     [mb_strtolower($email)]
                 )
-                ->first();
+                ->exists();
 
             if ($existingUser) {
                 throw ValidationException::withMessages([
@@ -59,21 +61,26 @@ final readonly class RegisterUser
                 ]);
             }
 
+            $userModel = new User;
             $user = $model::query()->create([
                 'name' => $name,
                 'email' => $email,
-                'password' => $password,
+                'password' => ($userModel->hasCast('password', 'hashed')) ? $password : Hash::make($password),
             ]);
 
             UserAuth::query()->create([
                 'user_id' => $user->getAuthIdentifier(),
                 'auth_provider' => 'local',
                 'auth_identifier' => strtolower($authIdentifier),
+                'two_factor_secret' => null,
+                'two_factor_recovery_codes' => null,
+                'two_factor_confirmed_at' => null,
+                'setup_completed' => false,
             ]);
 
             $this->linkStaffToUser->handle(
-                $user,
-                $authIdentifier,
+                user: $user,
+                staffNumber: $authIdentifier,
             );
 
             return $user;

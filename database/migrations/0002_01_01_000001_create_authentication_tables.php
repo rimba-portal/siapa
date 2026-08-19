@@ -15,14 +15,17 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete()->unique();
             $table->string('auth_provider', 50);
             $table->string('auth_identifier');
-            $table->text('two_factor_secret')->nullable();
-            $table->text('two_factor_recovery_codes')->nullable();
-            $table->timestamp('two_factor_confirmed_at')->nullable();
+            // Password recovery.
+            $table->text('totp_secret')->nullable();
+            $table->text('totp_recovery_codes')->nullable();
+            // Face Authentication.
             $table->text('face_descriptor')->nullable();
             $table->timestamp('last_login_at')->nullable();
             $table->timestamp('last_face_auth_at')->nullable();
+            // Onboarding.
             $table->boolean('setup_completed')->default(false);
             $table->timestamps();
+
             $table->unique(['auth_provider', 'auth_identifier']);
         });
 

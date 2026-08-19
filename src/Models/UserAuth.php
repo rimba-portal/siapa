@@ -8,28 +8,65 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Rimba\Who\Enums\SecurityLevel;
 
-final class UserAuth extends Model
+class UserAuth extends Model
 {
     protected $guarded = [];
 
     protected function casts(): array
     {
-        return ['two_factor_secret' => 'encrypted', 'two_factor_recovery_codes' => 'encrypted:array', 'two_factor_confirmed_at' => 'datetime', 'face_descriptor' => 'encrypted:array', 'last_login_at' => 'datetime', 'last_face_auth_at' => 'datetime', 'setup_completed' => 'boolean'];
+        return [
+            'totp_secret' => 'encrypted',
+            'totp_recovery_codes' => 'encrypted:array',
+
+            'face_descriptor' => 'encrypted:array',
+
+            'setup_completed' => 'boolean',
+
+            'last_login_at' => 'datetime',
+            'last_face_auth_at' => 'datetime',
+        ];
     }
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(config('auth.providers.users.model'));
+        return $this->belongsTo(
+            config('auth.providers.users.model')
+        );
     }
 
-    public function hasTwoFactor(): bool
+    public function hasTotp(): bool
     {
-        return $this->auth_provider === 'ldap' || $this->two_factor_confirmed_at !== null;
+        return filled($this->totp_secret);
     }
 
     public function hasValidFaceAuth(): bool
     {
-        return $this->last_face_auth_at?->greaterThan(now()->subMinutes((int) config('bites_auth.security.face_auth_timeout_minutes', 10))) ?? false;
+        if (! $this->last_face_auth_at) {
+            return false;
+        }
+
+        return $this->last_face_auth_at->greaterThan(
+            now()->subMinutes(
+                config(
+                    'bites_auth.security.face_auth_timeout_minutes',
+                    10
+                )
+            )
+        );
+    }
+
+    public function markSetupCompleted(): void
+    {
+        $this->update([
+            'setup_completed' => true,
+        ]);
+    }
+
+    public function markSetupIncomplete(): void
+    {
+        $this->update([
+            'setup_completed' => false,
+        ]);
     }
 
     public function securityLevel(): SecurityLevel
@@ -38,12 +75,8 @@ final class UserAuth extends Model
             return SecurityLevel::Public;
         }
 
-        if (! $this->hasTwoFactor()) {
-            return SecurityLevel::Authenticated;
-        }
-
         if (! $this->hasValidFaceAuth()) {
-            return SecurityLevel::TwoFactorVerified;
+            return SecurityLevel::Authenticated;
         }
 
         return SecurityLevel::FaceVerified;
