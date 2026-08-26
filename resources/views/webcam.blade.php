@@ -83,11 +83,7 @@
                 type="button"
                 color="danger"
                 x-show="photoUrl || stream"
-                x-on:click="
-            stopCamera();
-            photoUrl = null;
-            $wire.set('{{ $getStatePath() }}', null);
-        "
+                x-on:click=" stopCamera(); photoUrl = null; $wire.set('{{ $getStatePath() }}', null); "
             >
                 Clear
             </x-filament::button>
