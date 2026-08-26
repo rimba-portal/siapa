@@ -44,48 +44,51 @@
                 }
             }
         }"
-        class="space-y-4"
+        @class(['space-y-4'])
     >
         <!-- Camera Live View -->
-        <div class="relative flex justify-center overflow-hidden rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-800">
-            <video x-ref="video" autoplay playsinline class="w-full max-w-md rounded-lg" x-show="stream"></video>
+        <div @class(['relative', 'flex', 'justify-center', 'overflow-hidden', 'rounded-lg', 'border', 'border-gray-300', 'bg-gray-50', 'p-2', 'dark:border-gray-600', 'dark:bg-gray-800'])>
+            <video
+                x-ref="video"
+                autoplay
+                playsinline
+                @class(['w-full', 'max-w-md', 'rounded-lg'])
+                x-show="stream"
+            ></video>
 
             <!-- Snapshot Preview -->
-            <img :src="photoUrl" x-show="photoUrl && ! stream" class="w-full max-w-md rounded-lg" alt="Captured Photo" />
+            <img
+                :src="photoUrl"
+                x-show="photoUrl && ! stream"
+                @class(['w-full', 'max-w-md', 'rounded-lg'])
+                alt="Captured Photo"
+            />
 
-            <div x-show="! stream && ! photoUrl" class="py-16 text-center text-gray-400 dark:text-gray-500">
+            <div x-show="! stream && ! photoUrl" @class(['py-16', 'text-center', 'text-gray-400', 'dark:text-gray-500'])>
                 Webcam is turned off
             </div>
         </div>
 
         <!-- Controls -->
-        <div class="flex gap-2">
-            <button
-                type="button"
-                @click="startCamera()"
-                x-show="! stream"
-                class="bg-primary-600 hover:bg-primary-500 rounded-lg px-4 py-2 text-sm font-medium text-white shadow-sm"
-            >
+        <div @class(['flex', 'gap-2'])>
+            <x-filament::button type="button" x-show="! stream" x-on:click="startCamera()">
                 Start Camera
-            </button>
+            </x-filament::button>
 
-            <button
-                type="button"
-                @click="takePhoto()"
-                x-show="stream"
-                class="bg-success-600 hover:bg-success-500 rounded-lg px-4 py-2 text-sm font-medium text-white shadow-sm"
-            >
+            <x-filament::button type="button" color="success" x-show="stream" x-on:click="takePhoto()">
                 Capture Photo
-            </button>
+            </x-filament::button>
 
-            <button
+            <x-filament::button
                 type="button"
-                @click="stopCamera(); photoUrl = null; $wire.set('{{ $getStatePath() }}', null)"
+                color="danger"
                 x-show="photoUrl || stream"
-                class="bg-danger-600 hover:bg-danger-500 rounded-lg px-4 py-2 text-sm font-medium text-white shadow-sm"
+                x-on:click="
+            stopCamera();
+            photoUrl = null;
+            $wire.set('{{ $getStatePath() }}', null);
+        "
             >
                 Clear
-            </button>
-        </div>
-    </div>
-</x-dynamic-component>
+            </x-filament::button>
+        </div></x-dynamic-component>

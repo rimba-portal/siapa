@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Rimba\Who\Models\AuthenticationAttempt;
 use Rimba\Who\Models\UserAuth;
+use SensitiveParameter;
 
 trait HasUserAuth
 {
@@ -19,5 +20,21 @@ trait HasUserAuth
     public function authenticationAttempts(): HasMany
     {
         return $this->hasMany(AuthenticationAttempt::class);
+    }
+
+    public function getAppAuthenticationSecret(): ?string
+    {
+        return $this->userAuth->totp_secret;
+    }
+
+    public function saveAppAuthenticationSecret(#[SensitiveParameter] ?string $secret): void
+    {
+        $this->userAuth->totp_secret = $secret;
+        $this->save();
+    }
+
+    public function getAppAuthenticationHolderName(): string
+    {
+        return $this->email;
     }
 }
