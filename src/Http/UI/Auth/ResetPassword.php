@@ -4,162 +4,162 @@ declare(strict_types=1);
 
 namespace Rimba\Who\Http\UI\Auth;
 
+use App\Models\User;
+use Filament\Actions\Action;
+use Filament\Auth\MultiFactor\App\AppAuthentication;
+use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthentication;
+use Filament\Auth\Pages\PasswordReset\RequestPasswordReset as BaseResetPassword;
+use Filament\Forms\Components\OneTimeCodeInput;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
-use Filament\Pages\SimplePage;
 use Filament\Schemas\Schema;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Facades\Hash;
-use Rimba\Who\Models\AuthenticationAttempt;
-use Rimba\Who\Models\UserAuth;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Password;
 
-class ResetPassword extends SimplePage
+class ResetPassword extends BaseResetPassword
 {
-    protected string $view = 'bites::auth.reset-password';
+    public ?string $code = null;
 
-    public string $recoveryToken = '';
-
-    public ?array $data = [];
-
-    public function mount(
-        ?string $token = null,
-        ?string $email = null,
-    ): void {
-        $this->recoveryToken = (string) $token;
-
-        $this->resolveRecoveryUserAuth();
-
-        /*
-         * Do not call parent::mount().
-         *
-         * Filament's normal reset page expects Laravel's password-broker
-         * token and email flow. This implementation uses a TOTP-verified
-         * recovery session instead.
-         */
-        $this->form->fill([
-            'email' => $email,
-        ]);
-    }
+    public bool $verified = false;
 
     public function form(Schema $schema): Schema
     {
-        return $schema
-            ->components([
-                TextInput::make('password')
-                    ->password()
-                    ->required()
-                    ->confirmed(),
+        return $schema->components([
+            TextInput::make('email')
+                ->label('Email')
+                ->required()
+                ->email(),
 
-                TextInput::make('password_confirmation')
-                    ->password()
-                    ->required(),
-            ])
-            ->statePath('data');
+            OneTimeCodeInput::make('code')
+                ->label('TOTP Code')
+                ->required(),
+
+            TextInput::make('password')
+                ->label('New Password')
+                ->password()
+                ->required()
+                ->rule(Password::defaults())
+                ->visible(fn (): bool => $this->verified),
+
+            TextInput::make('passwordConfirmation')
+                ->label('Confirm Password')
+                ->password()
+                ->required()
+                ->same('password')
+                ->visible(fn (): bool => $this->verified),
+        ]);
     }
 
-    // public function resetPassword(): ?PasswordResetResponse
-    public function resetPassword(): void
+    public function verifyTotp(): void
     {
-        $userAuth = $this->resolveRecoveryUserAuth();
         $data = $this->form->getState();
 
-        DB::transaction(function () use (
-            $userAuth,
-            $data,
-        ): void {
-            $user = $userAuth->user;
+        $email = $data['email'] ?? null;
+        $code = $data['code'] ?? null;
 
-            abort_unless(
-                $user,
-                404,
-                'The user account no longer exists.',
-            );
+        if (! $email || ! $code) {
+            Notification::make()
+                ->title('Email and TOTP code are required.')
+                ->danger()
+                ->send();
 
-            $user->forceFill([
-                'password' => Hash::make(
-                    (string) $data['password']
-                ),
-            ])->save();
+            return;
+        }
 
-            AuthenticationAttempt::query()->create([
-                'user_id' => $userAuth->user_id,
-                'provider' => 'local',
-                'identifier' => $userAuth->auth_identifier,
-                'event' => 'password_reset',
-                'success' => true,
-                'message' => 'password_reset_completed',
-                'ip_address' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-            ]);
-        });
+        $user = User::where('email', $email)->first();
 
-        session()->forget([
-            'siapa.password_reset.user_auth_id',
-            'siapa.password_reset.verification_token_hash',
-            'siapa.password_reset.reset_token_hash',
-            'siapa.password_reset.expires_at',
-            'siapa.password_reset.totp_verified',
-        ]);
+        if (! $user) {
+            Notification::make()
+                ->title('User not found')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        if (! $user instanceof HasAppAuthentication) {
+            Notification::make()
+                ->title('User does not support app authentication.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $appAuthentication = AppAuthentication::make();
+
+        if (! $appAuthentication->verifyCode($code, $user->app_authentication_secret)) {
+            Notification::make()
+                ->title('Invalid TOTP code')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $this->verified = true;
 
         Notification::make()
-            ->title('Password updated')
-            ->body('Sign in using your new password.')
+            ->title('TOTP verified. You may now reset your password.')
+            ->success()
+            ->send();
+    }
+
+    public function resetPassword(): void
+    {
+        if (! $this->verified) {
+            Notification::make()
+                ->title('Please verify your TOTP code first.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $this->rateLimit(2);
+
+        $data = $this->form->getState();
+
+        $user = User::where('email', $data['email'])->first();
+
+        if (! $user) {
+            Notification::make()
+                ->title('User not found')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $user->forceFill([
+            'password' => Hash::make($data['password']),
+            'remember_token' => Str::random(60),
+        ])->save();
+
+        event(new PasswordReset($user));
+
+        Notification::make()
+            ->title('Password reset successfully')
             ->success()
             ->send();
 
-        $this->redirect(
-            filament()
-                ->getPanel('lobby')
-                ->getLoginUrl()
-        );
+        $this->redirect('/');
     }
 
-    private function resolveRecoveryUserAuth(): UserAuth
+    protected function getFormActions(): array
     {
-        $userAuthId = session(
-            'siapa.password_reset.user_auth_id'
-        );
+        return [
+            Action::make('verifyTotp')
+                ->label('Verify TOTP')
+                ->action('verifyTotp')
+                ->visible(fn (): bool => ! $this->verified),
 
-        $expectedHash = session(
-            'siapa.password_reset.reset_token_hash'
-        );
-
-        $expiresAt = session(
-            'siapa.password_reset.expires_at'
-        );
-
-        $verified = session(
-            'siapa.password_reset.totp_verified',
-            false,
-        );
-
-        abort_unless(
-            $verified === true
-                && filled($userAuthId)
-                && filled($expectedHash)
-                && filled($expiresAt)
-                && now()->timestamp <= (int) $expiresAt
-                && hash_equals(
-                    (string) $expectedHash,
-                    hash(
-                        'sha256',
-                        $this->recoveryToken,
-                    ),
-                ),
-            403,
-            'The password reset session is invalid or expired.',
-        );
-
-        $userAuth = UserAuth::query()
-            ->with('user')
-            ->findOrFail($userAuthId);
-
-        abort_unless(
-            $userAuth->auth_provider === 'local',
-            403,
-            'LDAP passwords cannot be reset through this application.',
-        );
-
-        return $userAuth;
+            Action::make('resetPassword')
+                ->label('Reset Password')
+                ->action('resetPassword')
+                ->visible(fn (): bool => $this->verified),
+        ];
     }
 }

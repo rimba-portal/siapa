@@ -8,7 +8,6 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Rimba\Who\Contracts\PanelAccessResolverContract;
 use Rimba\Who\Contracts\SecurityContextContract;
 use Rimba\Who\Enums\PanelId;
-use Rimba\Who\Enums\SecurityLevel;
 use Rimba\Who\Models\UserAuth;
 
 final readonly class PanelAccessService implements PanelAccessResolverContract
@@ -44,14 +43,11 @@ final readonly class PanelAccessService implements PanelAccessResolverContract
 
         return match ($panelId) {
             PanelId::Staff->value => $securityContext->isStaff,
-            PanelId::StaffSensitive->value => $securityContext->isStaff
-                && $securityContext->level === SecurityLevel::FaceVerified,
+            PanelId::StaffSensitive->value => $securityContext->isStaff,
             PanelId::Team->value => $securityContext->isStaff
-                && $securityContext->isTmo
-                && $securityContext->level === SecurityLevel::FaceVerified,
+                && $securityContext->isTmo,
             PanelId::Admin->value => $securityContext->isStaff
-                && $securityContext->isAdmin
-                && $securityContext->level === SecurityLevel::FaceVerified,
+                && $securityContext->isAdmin,
             default => false,
         };
     }
