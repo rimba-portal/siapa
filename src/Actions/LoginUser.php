@@ -10,7 +10,7 @@ use Rimba\Who\Models\UserAuth;
 
 final class LoginUser
 {
-    public function handle(Authenticatable $user, bool $remember = false): never
+    public function handle(Authenticatable $user, bool $remember = false): void
     {
         Auth::login($user, $remember);
         request()->session()->regenerate();
