@@ -10,10 +10,11 @@ use Rimba\Who\Models\UserAuth;
 
 final class LoginUser
 {
-    public function handle(Authenticatable $user, bool $remember = false): void
+    public function handle(Authenticatable $user, bool $remember = false): never
     {
         Auth::login($user, $remember);
         request()->session()->regenerate();
+        dd(session('url.intended'));
         UserAuth::query()->where('user_id', $user->getAuthIdentifier())->update(['last_login_at' => now()]);
     }
 }
