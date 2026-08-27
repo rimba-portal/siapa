@@ -7,7 +7,6 @@ namespace Rimba\Who\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Rimba\Who\Http\UI\Auth\VerifyFace;
-use Rimba\Who\Models\UserAuth;
 use Rimba\Who\Traits\RequiresFaceVerification;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -24,16 +23,6 @@ class EnsureFaceVerification
             return $next($request);
         }
 
-        /*
-         * Prevent redirect loop.
-         */
-        if ($this->isVerifyFacePage($request)) {
-            return $next($request);
-        }
-
-        /*
-         * Detect current page/resource class.
-         */
         $class = $this->resolveCurrentClass($request);
 
         if (! $class) {
@@ -41,23 +30,25 @@ class EnsureFaceVerification
         }
 
         /*
-         * Only secure pages/resources that use the trait.
+         * Prevent redirect loop.
+         */
+        if ($class === VerifyFace::class) {
+            return $next($request);
+        }
+
+        /*
+         * Only secure pages/resources that explicitly opt in.
          */
         if (! $this->requiresFaceVerification($class)) {
             return $next($request);
         }
 
-        $userAuth = UserAuth::query()
-            ->where('user_id', $user->getAuthIdentifier())
-            ->first();
+        $userAuth = $user->userAuth;
 
         if ($userAuth?->hasValidFaceAuth()) {
             return $next($request);
         }
 
-        /*
-         * Save destination.
-         */
         session()->put(
             'face_auth.intended_url',
             $request->fullUrl()
@@ -79,19 +70,6 @@ class EnsureFaceVerification
         );
     }
 
-    protected function isVerifyFacePage(
-        Request $request,
-    ): bool {
-
-        $class = $this->resolveCurrentClass($request);
-
-        if (! $class) {
-            return false;
-        }
-
-        return $class === VerifyFace::class;
-    }
-
     protected function resolveCurrentClass(
         Request $request,
     ): ?string {
@@ -102,18 +80,12 @@ class EnsureFaceVerification
             return null;
         }
 
-        /*
-         * Filament Page
-         */
-        if (
-            method_exists($route, 'getController')
-            && $route->getController()
-        ) {
-            return get_class(
-                $route->getController()
-            );
+        $controller = $route->getController();
+
+        if (! $controller) {
+            return null;
         }
 
-        return null;
+        return get_class($controller);
     }
 }

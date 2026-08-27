@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Rimba\Who;
 
+use Filament\Facades\Filament;
 use Rimba\Base\Services\BitesServiceProvider;
 use Rimba\Who\Actions\AuthenticateLocalUser;
 use Rimba\Who\Contracts\FaceVerifierContract;
@@ -12,6 +13,7 @@ use Rimba\Who\Contracts\PanelAccessResolverContract;
 use Rimba\Who\Contracts\SecurityContextContract;
 use Rimba\Who\Contracts\StaffResolverContract;
 use Rimba\Who\Enums\AuthenticationStatus;
+use Rimba\Who\Http\Middleware\EnsureFaceVerification;
 use Rimba\Who\Services\FaceAuthService;
 use Rimba\Who\Services\IdentityAuthenticatorService;
 use Rimba\Who\Services\IdentityResolverService;
@@ -32,6 +34,9 @@ class WhoServiceProvider extends BitesServiceProvider
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->publishes([__DIR__.'/../resources/assets/models' => public_path('models')], 'assets');
         $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
+        Filament::serving(function (): void {
+            app('router')->pushMiddlewareToGroup('web', EnsureFaceVerification::class);
+        });
 
     }
 
