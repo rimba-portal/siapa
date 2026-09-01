@@ -14,7 +14,6 @@ final class LoginUser
     {
         Auth::login($user, $remember);
         request()->session()->regenerate();
-        dd(session('url.intended'));
         UserAuth::query()->where('user_id', $user->getAuthIdentifier())->update(['last_login_at' => now()]);
     }
 }

@@ -25,7 +25,7 @@
                     Staff:
                     <span class="font-semibold text-gray-900 dark:text-white" x-text="staffNo || 'N/A'"></span>
                 </div>
-
+                <div class="mt-1 font-semibold" x-text="distanceText"></div>
                 <div
                     class="mt-1 font-semibold"
                     :class="isMatched ? 'text-success-600' : 'text-gray-900 dark:text-white'"
@@ -78,22 +78,19 @@
                 },
 
                 watchStaffNo() {
-                    this.$watch(
-                        () => this.$wire?.data?.staff_no,
-                        async (staffNo) => {
-                            if (!staffNo) {
-                                return;
-                            }
+                    this.$watch(async (staffNo) => {
+                        if (!staffNo) {
+                            return;
+                        }
 
-                            if (staffNo === this.staffNo && this.referenceDescriptor) {
-                                return;
-                            }
+                        if (staffNo === this.staffNo && this.referenceDescriptor) {
+                            return;
+                        }
 
-                            this.staffNo = staffNo;
+                        this.staffNo = staffNo;
 
-                            await this.loadReferenceImage(staffNo);
-                        },
-                    );
+                        await this.loadReferenceImage(staffNo);
+                    });
                 },
 
                 async loadReferenceImage(staffNo) {
@@ -124,7 +121,7 @@
 
                 async loadReferenceDescriptor() {
                     const image = this.$refs.referenceImage;
-
+                    console.log('Reference loaded');
                     if (!image) {
                         this.referenceStatus = 'Image Element Missing ❌';
                         return;
@@ -134,12 +131,16 @@
                         this.referenceStatus = 'Image Not Ready ❌';
                         return;
                     }
-
+                    console.log('Video dimensions', {
+                        width: this.$refs.video.videoWidth,
+                        height: this.$refs.video.videoHeight,
+                        readyState: this.$refs.video.readyState,
+                    });
                     const detection = await faceapi
                         .detectSingleFace(image, new faceapi.TinyFaceDetectorOptions())
                         .withFaceLandmarks()
                         .withFaceDescriptor();
-
+                    console.log('Detection', detection);
                     if (!detection) {
                         this.referenceStatus = 'No Face In ID ❌';
                         this.resultText = 'No Reference Face';
@@ -155,7 +156,7 @@
 
                 async startCamera() {
                     const video = this.$refs.video;
-
+                    console.log('Camera started');
                     if (!video) {
                         this.cameraStatus = 'Video Missing ❌';
                         return;
@@ -166,8 +167,8 @@
                     try {
                         this.videoStream = await navigator.mediaDevices.getUserMedia({
                             video: {
-                                width: 160,
-                                height: 160,
+                                width: 640,
+                                height: 480,
                                 facingMode: 'user',
                             },
                         });
@@ -214,6 +215,7 @@
                     if (!detection) {
                         this.cameraStatus = 'Scanning...';
                         this.resultText = 'No Face';
+                        this.distanceText = 'Detection: null';
 
                         requestAnimationFrame(() => this.detectLoop());
                         return;
@@ -221,45 +223,34 @@
 
                     const distance = faceapi.euclideanDistance(this.referenceDescriptor, detection.descriptor);
 
-                    this.distanceText = `Distance: ${distance.toFixed(4)}`;
+                    this.distanceText =
+                        `Distance: ${distance.toFixed(4)} | ` +
+                        `Score: ${detection.detection.score.toFixed(4)} | ` +
+                        `Threshold: ${this.matchThreshold.toFixed(4)}`;
 
                     if (distance <= this.matchThreshold) {
                         this.isMatched = true;
                         this.cameraStatus = 'Match ✅';
-                        this.resultText = 'Matched';
+                        this.resultText = 'Verified Successfully';
 
+                        // Pass the verified state back to the Filament component state
+                        // Assumes your custom field holds a boolean value
+                        this.$wire.dispatch('face-matched');
                         this.stopCamera();
+                    } else {
+                        this.cameraStatus = 'Live';
+                        this.resultText = 'Not Verified';
 
-                        if (this.$wire?.faceMatched) {
-                            this.$wire.faceMatched();
-                        }
-
-                        return;
+                        // Continue checking on next animation frame
+                        requestAnimationFrame(() => this.detectLoop());
                     }
-
-                    this.cameraStatus = 'Not Match';
-                    this.resultText = 'Scanning';
-
-                    requestAnimationFrame(() => this.detectLoop());
+                    console.log('Distance:', distance);
                 },
 
                 stopCamera() {
-                    if (!this.videoStream) {
-                        return;
+                    if (this.videoStream) {
+                        this.videoStream.getTracks().forEach((track) => track.stop());
                     }
-
-                    this.videoStream.getTracks().forEach((track) => {
-                        track.stop();
-                    });
-
-                    this.videoStream = null;
-
-                    if (this.$refs.video) {
-                        this.$refs.video.pause();
-                        this.$refs.video.srcObject = null;
-                    }
-
-                    this.cameraStatus = 'Stopped';
                 },
             }));
         });

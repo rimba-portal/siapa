@@ -55,6 +55,13 @@ class UserAuth extends Model
         );
     }
 
+    public function markFaceVerified(): void
+    {
+        $this->update([
+            'last_face_auth_at' => now(),
+        ]);
+    }
+
     public function markSetupCompleted(): void
     {
         $this->update([
