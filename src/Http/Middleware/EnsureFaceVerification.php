@@ -54,9 +54,7 @@ class EnsureFaceVerification
             $request->fullUrl()
         );
 
-        return redirect()->route(
-            'siapa.face.verify'
-        );
+        return redirect()->route('filament.staff.pages.verify-face');
     }
 
     protected function requiresFaceVerification(
