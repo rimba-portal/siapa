@@ -32,6 +32,8 @@ class VerifyFace extends Page implements HasSchemas
 
     protected string $view = 'bites::pages.profile';
 
+    protected static bool $shouldRegisterNavigation = false;
+
     public string $staffNo;
 
     public function mount(): void
