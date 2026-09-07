@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Storage;
 
 class WebCam extends Field
 {
-    protected string $view = 'bites::web-cam';
+    protected string $view = 'bites::webcam';
 
     public function getPhotoUrl(): ?string
     {

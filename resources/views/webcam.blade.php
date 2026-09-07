@@ -87,4 +87,6 @@
             >
                 Clear
             </x-filament::button>
-        </div></x-dynamic-component>
+        </div>
+    </div>
+</x-dynamic-component>

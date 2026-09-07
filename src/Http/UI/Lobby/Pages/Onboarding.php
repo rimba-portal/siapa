@@ -74,36 +74,23 @@ class Onboarding extends Page
                 Wizard::make([
                     Wizard\Step::make('Profile')
                         ->schema([
-                            TextInput::make('fullname')
-                                ->required(),
-
-                            TextInput::make('phone')
-                                ->tel()
-                                ->required(),
-
-                            Textarea::make('address')
-                                ->rows(3),
-
+                            TextInput::make('fullname')->required(),
+                            TextInput::make('phone')->tel()->required(),
+                            Textarea::make('address')->rows(3),
                             TextInput::make('emergency_contact'),
-
                             TextInput::make('preferred_language'),
-
-                            TextInput::make('personal_email')
-                                ->email(),
+                            TextInput::make('personal_email')->email(),
                         ]),
 
                     Wizard\Step::make('Photo')
                         ->schema([
-                            WebCam::make('photo')
-                                ->label('Profile Photo')
-                                ->required(),
+                            WebCam::make('photo')->label('Profile Photo')->required(),
                         ]),
 
                     Wizard\Step::make('Recovery TOTP')
                         ->schema([
                             Section::make('Recovery Authenticator')
-                                ->compact()
-                                ->divided()
+                                ->compact()->divided()
                                 ->schema(
                                     collect(Filament::getMultiFactorAuthenticationProviders())
                                         ->map(
@@ -124,15 +111,9 @@ class Onboarding extends Page
         $state = $this->form->getState();
 
         $user = auth()->user();
-
         $userAuth = UserAuth::firstOrCreate(
-            [
-                'user_id' => $user->id,
-            ],
-            [
-                'auth_provider' => 'local',
-                'auth_identifier' => $user->email,
-            ],
+            ['user_id' => $user->id],
+            ['auth_provider' => 'local', 'auth_identifier' => $user->email],
         );
 
         $userAuth->update([
@@ -144,12 +125,10 @@ class Onboarding extends Page
                 'preferred_language' => $state['preferred_language'] ?? null,
                 'personal_email' => $state['personal_email'] ?? null,
             ],
-
             'face_descriptor' => [
                 'photo_path' => $state['photo'] ?? null,
                 'captured_at' => now()->toDateTimeString(),
             ],
-
             'setup_completed' => true, // Set to true once finished
         ]);
 
