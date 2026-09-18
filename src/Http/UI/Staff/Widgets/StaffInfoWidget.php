@@ -44,15 +44,15 @@ class StaffInfoWidget extends Widget
             ];
         }
 
+        // ✅ Updated: Eager load using the new direct relationship chain
         $user = User::with([
-            'staff.agreement.jobPosition.orgUnit',
+            'staff.jobPosition.orgUnit',
         ])->find($user->getKey());
 
         $staff = $user?->staff;
 
-        $agreement = $staff?->agreement;
-
-        $jobPosition = $agreement?->jobPosition;
+        // ✅ Updated: Safely pluck the JobPosition directly from the staff model
+        $jobPosition = $staff?->jobPosition;
 
         return [
             'user' => $user,
