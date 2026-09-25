@@ -43,9 +43,9 @@ class WhoServiceProvider extends BitesServiceProvider
     protected function registerPackage(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../config/bites_auth.php', 'bites_auth');
-        $this->app->singleton('bites_auth.authenticator.local', fn ($app) => new class($app->make(AuthenticateLocalUser::class)) implements IdentityAuthenticatorContract
+        $this->app->singleton('bites_auth.authenticator.local', fn ($app): IdentityAuthenticatorContract => new class($app->make(AuthenticateLocalUser::class)) implements IdentityAuthenticatorContract
         {
-            public function __construct(private AuthenticateLocalUser $action) {}
+            public function __construct(private AuthenticateLocalUser $authenticateLocalUser) {}
 
             public function name(): string
             {
@@ -54,7 +54,7 @@ class WhoServiceProvider extends BitesServiceProvider
 
             public function authenticateExisting(string $identifier, string $password): AuthenticationResult
             {
-                return $this->action->handle($identifier, $password);
+                return $this->authenticateLocalUser->handle($identifier, $password);
             }
 
             public function authenticateExternal(ExternalIdentity $identity, string $password): AuthenticationResult
@@ -62,8 +62,8 @@ class WhoServiceProvider extends BitesServiceProvider
                 return new AuthenticationResult(AuthenticationStatus::NotFound, 'local', reason: 'unsupported_external_identity');
             }
         });
-        $this->app->singleton(IdentityResolverService::class, fn ($app) => new IdentityResolverService($this->resolveTagged($app, 'bites_auth.external-resolver')));
-        $this->app->singleton(IdentityAuthenticatorService::class, fn ($app) => new IdentityAuthenticatorService($this->resolveTagged($app, 'bites_auth.authenticator')));
+        $this->app->singleton(IdentityResolverService::class, fn ($app): IdentityResolverService => new IdentityResolverService($this->resolveTagged($app, 'bites_auth.external-resolver')));
+        $this->app->singleton(IdentityAuthenticatorService::class, fn ($app): IdentityAuthenticatorService => new IdentityAuthenticatorService($this->resolveTagged($app, 'bites_auth.authenticator')));
         $this->app->tag(['bites_auth.authenticator.local'], 'bites_auth.authenticator');
         $this->app->bind(SecurityContextContract::class, SecurityContextService::class);
         $this->app->bind(StaffResolverContract::class, StaffResolverService::class);
