@@ -1,13 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Rimba\Who\Http\UI\Admin\Resources\AuthenticationAttempts\Pages;
 
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
+use Rimba\Who\Http\UI\Admin\Resources\AuthenticationAttempts\AuthenticationAttemptResource;
 
 class ListAuthenticationAttempts extends ListRecords
 {
-    protected static string $resource = \Rimba\Who\Http\UI\Admin\Resources\AuthenticationAttempts\AuthenticationAttemptResource::class;
+    protected static string $resource = AuthenticationAttemptResource::class;
 
     protected static ?string $title = 'Authentication Security Logs';
 

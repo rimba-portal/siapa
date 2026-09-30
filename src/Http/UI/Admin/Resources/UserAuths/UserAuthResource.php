@@ -1,17 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Rimba\Who\Http\UI\Admin\Resources\UserAuths;
 
 use BackedEnum;
-use UnitEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Rimba\Who\Http\UI\Admin\Resources\UserAuths\Pages\ListUserAuths;
+use Rimba\Who\Models\UserAuth;
+use UnitEnum;
 
 class UserAuthResource extends Resource
 {
-    protected static ?string $model = \Rimba\Who\Models\UserAuth::class;
+    protected static ?string $model = UserAuth::class;
 
     protected static string|UnitEnum|null $navigationGroup = 'Who';
 
@@ -21,23 +24,32 @@ class UserAuthResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'id';
 
-    public static function form(Schema $schema): Schema { return $schema->components([]); }
+    public static function form(Schema $schema): Schema
+    {
+        return $schema->components([]);
+    }
 
-    public static function infolist(Schema $schema): Schema { return $schema->components([]); }
+    public static function infolist(Schema $schema): Schema
+    {
+        return $schema->components([]);
+    }
 
-    public static function table(Table $table): Table { return $table->columns([]); }
+    public static function table(Table $table): Table
+    {
+        return $table->columns([]);
+    }
 
-    public static function getRelations(): array 
-    { 
-        return [ 
-            // 
+    public static function getRelations(): array
+    {
+        return [
+            //
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => \Rimba\Who\Http\UI\Admin\Resources\UserAuths\Pages\ListUserAuths::route('/'),
+            'index' => ListUserAuths::route('/'),
             // 'create' => \Rimba\Who\Http\UI\Admin\Resources\UserAuths\Pages\CreateUserAuth::route('/create'),
             // 'view' => \Rimba\Who\Http\UI\Admin\Resources\UserAuths\Pages\ViewUserAuth::route('/{record}'),
             // 'edit' => \Rimba\Who\Http\UI\Admin\Resources\UserAuths\Pages\EditUserAuth::route('/{record}/edit'),
