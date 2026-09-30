@@ -11,12 +11,22 @@ final class AuthenticationAttemptPolicy
 {
     public function viewAny(Authenticatable $user): bool
     {
-        return (bool) ($user->hasRole(config('siapa.roles.admin')) ?? false);
+        return (bool) (
+            $user->staff?->hasRole(
+                config('bites_auth.roles.admin')
+            ) ?? false
+        );
     }
 
-    public function view(Authenticatable $user, AuthenticationAttempt $record): bool
-    {
+    public function view(
+        Authenticatable $user,
+        AuthenticationAttempt $record
+    ): bool {
         return $user->getAuthIdentifier() === $record->user_id
-            || (bool) ($user->hasRole(config('siapa.roles.admin')) ?? false);
+            || (
+                $user->staff?->hasRole(
+                    config('bites_auth.roles.admin')
+                ) ?? false
+            );
     }
 }
