@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Rimba\Who;
 
 use Filament\Facades\Filament;
+use Illuminate\Console\Command;
+use ReflectionClass;
 use Rimba\Base\Services\BitesServiceProvider;
 use Rimba\Who\Actions\AuthenticateLocalUser;
 use Rimba\Who\Contracts\FaceVerifierContract;
@@ -13,7 +15,7 @@ use Rimba\Who\Contracts\PanelAccessResolverContract;
 use Rimba\Who\Contracts\SecurityContextContract;
 use Rimba\Who\Contracts\StaffResolverContract;
 use Rimba\Who\Enums\AuthenticationStatus;
-use Rimba\Who\Http\Middleware\EnsureFaceVerification;
+use Rimba\Who\Http\Middleware\EnsureSecurityLevel;
 use Rimba\Who\Services\FaceAuthService;
 use Rimba\Who\Services\IdentityAuthenticatorService;
 use Rimba\Who\Services\IdentityResolverService;
@@ -32,12 +34,16 @@ class WhoServiceProvider extends BitesServiceProvider
     protected function bootPackage(): void
     {
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        if ($this->app->runningInConsole()) {
+            $this->registerCommandsFromDirectory();
+        }
+
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->publishes([__DIR__.'/../resources/assets/models' => public_path('models')], 'assets');
         $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
         Filament::serving(function (): void {
-            app('router')->pushMiddlewareToGroup('web', EnsureFaceVerification::class);
+            app('router')->pushMiddlewareToGroup('web', EnsureSecurityLevel::class);
         });
-
     }
 
     protected function registerPackage(): void
@@ -69,7 +75,33 @@ class WhoServiceProvider extends BitesServiceProvider
         $this->app->bind(StaffResolverContract::class, StaffResolverService::class);
         $this->app->bind(PanelAccessResolverContract::class, PanelAccessService::class);
         $this->app->bind(FaceVerifierContract::class, FaceAuthService::class);
+    }
 
+    /**
+     * Dynamically discover and boot all commands inside the package directory.
+     */
+    protected function registerCommandsFromDirectory()
+    {
+        $commandDir = __DIR__.'/Console/Commands';
+        if (! is_dir($commandDir)) {
+            return;
+        }
+
+        $commands = [];
+        foreach (glob($commandDir.'/*.php') as $file) {
+            $className = basename($file, '.php');
+            $class = 'Rimba\\Sync\\Console\\Commands\\'.$className;
+            if (class_exists($class) && is_subclass_of($class, Command::class)) {
+                $reflection = new ReflectionClass($class);
+                if (! $reflection->isAbstract()) {
+                    $commands[] = $class;
+                }
+            }
+        }
+
+        if ($commands !== []) {
+            $this->commands($commands);
+        }
     }
 
     private function resolveTagged($app, string $tag): iterable
