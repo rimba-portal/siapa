@@ -44,10 +44,21 @@ return new class extends Migration
             $table->index(['identifier', 'created_at']);
             $table->index(['event', 'created_at']);
         });
+
+        Schema::create(
+            'security_settings',
+            function (Blueprint $table): void {
+                $table->id();
+                $table->string('key', 100)->unique();
+                $table->json('value');
+                $table->timestamps();
+            },
+        );
     }
 
     public function down(): void
     {
+        Schema::dropIfExists('security_settings');
         Schema::dropIfExists('authentication_attempts');
         Schema::dropIfExists('user_auths');
     }

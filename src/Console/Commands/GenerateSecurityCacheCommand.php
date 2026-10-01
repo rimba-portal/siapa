@@ -9,18 +9,31 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Rimba\Who\Services\SecurityCacheGenerator;
 
-#[Description('Generate Rimba Who security cache files')]
+#[Description('Generate Rimba Who route and security cache files')]
 #[Signature('who:security-cache')]
 final class GenerateSecurityCacheCommand extends Command
 {
     public function handle(
         SecurityCacheGenerator $generator,
     ): int {
-
-        $generator->generate();
+        $result = $generator->generate();
 
         $this->components->info(
-            'Rimba security cache generated.'
+            sprintf(
+                'Generated route cache containing %d routes.',
+                count($result['routes']),
+            ),
+        );
+
+        $this->components->info(
+            sprintf(
+                'Generated security cache containing %d policy groups.',
+                count($result['policies']),
+            ),
+        );
+
+        $this->components->info(
+            'Cache directory: bootstrap/cache/rimba',
         );
 
         return self::SUCCESS;
