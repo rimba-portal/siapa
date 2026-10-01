@@ -20,6 +20,7 @@ use Rimba\Who\Services\FaceAuthService;
 use Rimba\Who\Services\IdentityAuthenticatorService;
 use Rimba\Who\Services\IdentityResolverService;
 use Rimba\Who\Services\PanelAccessService;
+use Rimba\Who\Services\SecurityCacheGenerator;
 use Rimba\Who\Services\SecurityContextService;
 use Rimba\Who\Services\StaffResolverService;
 use Rimba\Who\Support\AuthenticationResult;
@@ -38,6 +39,7 @@ class WhoServiceProvider extends BitesServiceProvider
             $this->registerCommandsFromDirectory();
         }
 
+        $this->ensureSecurityCache();
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->publishes([__DIR__.'/../resources/assets/models' => public_path('models')], 'assets');
         $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
@@ -75,6 +77,7 @@ class WhoServiceProvider extends BitesServiceProvider
         $this->app->bind(StaffResolverContract::class, StaffResolverService::class);
         $this->app->bind(PanelAccessResolverContract::class, PanelAccessService::class);
         $this->app->bind(FaceVerifierContract::class, FaceAuthService::class);
+        $this->app->singleton(SecurityCacheGenerator::class);
     }
 
     /**
@@ -90,7 +93,7 @@ class WhoServiceProvider extends BitesServiceProvider
         $commands = [];
         foreach (glob($commandDir.'/*.php') as $file) {
             $className = basename($file, '.php');
-            $class = 'Rimba\\Sync\\Console\\Commands\\'.$className;
+            $class = 'Rimba\\Who\\Console\\Commands\\'.$className;
             if (class_exists($class) && is_subclass_of($class, Command::class)) {
                 $reflection = new ReflectionClass($class);
                 if (! $reflection->isAbstract()) {
@@ -107,5 +110,44 @@ class WhoServiceProvider extends BitesServiceProvider
     private function resolveTagged($app, string $tag): iterable
     {
         return $app->tagged($tag);
+    }
+
+    protected function ensureSecurityCache(): void
+    {
+        $cachePath = base_path(
+            'bootstrap/cache/rimba'
+        );
+
+        if (! is_dir($cachePath)) {
+
+            app(
+                SecurityCacheGenerator::class
+            )->generate();
+
+            return;
+        }
+
+        $requiredFiles = [
+
+            $cachePath.'/who-routes.php',
+
+            $cachePath.'/who-security.php',
+
+        ];
+
+        foreach ($requiredFiles as $requiredFile) {
+
+            if (
+                ! file_exists($requiredFile)
+                || filesize($requiredFile) === 0
+            ) {
+
+                app(
+                    SecurityCacheGenerator::class
+                )->generate();
+
+                return;
+            }
+        }
     }
 }
