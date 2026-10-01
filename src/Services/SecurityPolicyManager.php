@@ -11,7 +11,7 @@ final class SecurityPolicyManager
 {
     private function policies(): array
     {
-        $file = base_path('bootstrap/cache/who-security.php');
+        $file = base_path('bootstrap/cache/rimba/who-security.php');
 
         if (! file_exists($file)) {
             return [];

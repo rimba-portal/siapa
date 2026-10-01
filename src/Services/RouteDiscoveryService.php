@@ -10,17 +10,9 @@ final class RouteDiscoveryService
 {
     public function discover(): array
     {
-        return collect(
-            Route::getRoutes()
-        )
-            ->pluck('action.as')
+        return collect(Route::getRoutes())
+            ->map(fn ($route) => $route->getName())
             ->filter()
-            ->filter(
-                fn (string $route): bool => str_starts_with(
-                    $route,
-                    'filament.'
-                )
-            )
             ->sort()
             ->values()
             ->all();
