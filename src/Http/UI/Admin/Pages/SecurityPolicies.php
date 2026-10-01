@@ -8,6 +8,7 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Schemas\Schema;
 use Rimba\Who\Services\SecurityCacheGenerator;
@@ -17,11 +18,23 @@ final class SecurityPolicies extends Page implements HasSchemas
     protected static ?string $navigationLabel =
         'Security Policies';
 
+    protected static ?string $title =
+        'Security Policies';
+
     protected static string|\UnitEnum|null $navigationGroup =
         'Who';
 
     protected string $view =
         'bites::admin.allowed-pages';
+
+    private const CACHE_DIR =
+        'bootstrap/cache/rimba';
+
+    private const ROUTES_FILE =
+        self::CACHE_DIR.'/who-routes.php';
+
+    private const SECURITY_FILE =
+        self::CACHE_DIR.'/who-security.php';
 
     public ?array $data = [];
 
@@ -31,62 +44,68 @@ final class SecurityPolicies extends Page implements HasSchemas
     {
         $this->routes = $this->loadRoutes();
 
-        $securityFile = base_path(
-            'bootstrap/cache/rimba/who-security.php'
-        );
-
-        $this->data = [
-            'authenticated' => [],
-            'two_factor_verified' => [],
-            'face_verified' => [],
-        ];
-
-        if (! file_exists($securityFile)) {
-            return;
-        }
-
         $this->data = array_merge(
-            $this->data,
-            require $securityFile,
+            $this->defaultPolicies(),
+            $this->loadPolicies(),
         );
     }
 
     public function form(
-        Schema $schema
+        Schema $schema,
     ): Schema {
 
         return $schema
             ->components([
 
-                CheckboxList::make(
-                    'authenticated'
-                )
-                    ->label('Authenticated')
-                    ->options(
-                        $this->routeOptions()
+                Section::make('Authenticated')
+                    ->description(
+                        sprintf(
+                            '%d routes configured',
+                            count(
+                                $this->data['authenticated'] ?? [],
+                            ),
+                        ),
                     )
-                    ->searchable()
-                    ->columns(1),
+                    ->collapsible()
+                    ->collapsed()
+                    ->schema([
+                        $this->securityField(
+                            'authenticated',
+                        ),
+                    ]),
 
-                CheckboxList::make(
-                    'two_factor_verified'
-                )
-                    ->label('Two Factor Verified')
-                    ->options(
-                        $this->routeOptions()
+                Section::make('Two Factor Verified')
+                    ->description(
+                        sprintf(
+                            '%d routes configured',
+                            count(
+                                $this->data['two_factor_verified'] ?? [],
+                            ),
+                        ),
                     )
-                    ->searchable()
-                    ->columns(1),
+                    ->collapsible()
+                    ->collapsed()
+                    ->schema([
+                        $this->securityField(
+                            'two_factor_verified',
+                        ),
+                    ]),
 
-                CheckboxList::make(
-                    'face_verified'
-                )
-                    ->label('Face Verified')
-                    ->options(
-                        $this->routeOptions()
+                Section::make('Face Verified')
+                    ->description(
+                        sprintf(
+                            '%d routes configured',
+                            count(
+                                $this->data['face_verified'] ?? [],
+                            ),
+                        ),
                     )
-                    ->searchable()
-                    ->columns(1),
+                    ->collapsible()
+                    ->schema([
+                        $this->securityField(
+                            'face_verified',
+                        ),
+                    ]),
 
             ])
             ->statePath('data');
@@ -100,54 +119,88 @@ final class SecurityPolicies extends Page implements HasSchemas
                 ->label('Refresh Routes')
                 ->icon('heroicon-o-arrow-path')
                 ->color('gray')
-                ->action(function (): void {
-
-                    app(
-                        SecurityCacheGenerator::class
-                    )->generate();
-
-                    $this->routes =
-                        $this->loadRoutes();
-
-                    Notification::make()
-                        ->success()
-                        ->title(
-                            'Routes refreshed'
-                        )
-                        ->body(
-                            sprintf(
-                                '%d routes discovered.',
-                                count($this->routes)
-                            )
-                        )
-                        ->send();
-                }),
+                ->action(
+                    fn () => $this->refreshRoutes(),
+                ),
 
             Action::make('save')
+                ->label('Save')
                 ->icon('heroicon-o-check')
                 ->color('success')
                 ->action(
-                    fn () => $this->savePolicies()
+                    fn () => $this->savePolicies(),
                 ),
 
         ];
     }
 
-    protected function routeOptions(): array
+    protected function refreshRoutes(): void
     {
-        return collect($this->routes)
-            ->mapWithKeys(
-                fn (string $route): array => [
-                    $route => $route,
-                ]
-            )
-            ->toArray();
+        app(
+            SecurityCacheGenerator::class
+        )->generate();
+
+        $this->routes =
+            $this->loadRoutes();
+
+        $this->success(
+            'Routes refreshed',
+            sprintf(
+                '%d routes discovered.',
+                count($this->routes),
+            ),
+        );
     }
 
-    protected function loadRoutes(): array
+    public function savePolicies(): void
+    {
+        file_put_contents(
+            base_path(
+                self::SECURITY_FILE,
+            ),
+            $this->exportPhpArray(
+                $this->data,
+            ),
+            LOCK_EX,
+        );
+
+        $this->success(
+            'Security policies saved',
+        );
+        $this->refreshRoutes();
+    }
+
+    protected function securityField(
+        string $field,
+    ): CheckboxList {
+
+        return CheckboxList::make($field)
+            ->hiddenLabel()
+            ->options(
+                fn (): array => $this->routeOptions()
+            )
+            ->searchable()
+            ->bulkToggleable()
+            ->columns(1);
+    }
+
+    protected function defaultPolicies(): array
+    {
+        return [
+
+            'authenticated' => [],
+
+            'two_factor_verified' => [],
+
+            'face_verified' => [],
+
+        ];
+    }
+
+    protected function loadPolicies(): array
     {
         $file = base_path(
-            'bootstrap/cache/rimba/who-routes.php'
+            self::SECURITY_FILE,
         );
 
         if (! file_exists($file)) {
@@ -157,33 +210,52 @@ final class SecurityPolicies extends Page implements HasSchemas
         return require $file;
     }
 
-    public function savePolicies(): void
+    protected function loadRoutes(): array
     {
-        $contents =
-            "<?php\n\nreturn "
-            .var_export(
-                [
-                    'authenticated' => $this->data['authenticated'] ?? [],
-                    'two_factor_verified' => $this->data['two_factor_verified'] ?? [],
-                    'face_verified' => $this->data['face_verified'] ?? [],
-                ],
-                true,
-            )
-            .";\n";
-
-        file_put_contents(
-            base_path(
-                'bootstrap/cache/rimba/who-security.php'
-            ),
-            $contents,
-            LOCK_EX,
+        $file = base_path(
+            self::ROUTES_FILE,
         );
+
+        if (! file_exists($file)) {
+            return [];
+        }
+
+        return require $file;
+    }
+
+    protected function routeOptions(): array
+    {
+        return collect($this->routes)
+            ->mapWithKeys(
+                fn (string $route): array => [
+                    $route => $route,
+                ],
+            )
+            ->all();
+    }
+
+    protected function exportPhpArray(
+        array $data,
+    ): string {
+
+        return '<?php'
+            .PHP_EOL
+            .PHP_EOL
+            .'return '
+            .var_export($data, true)
+            .';'
+            .PHP_EOL;
+    }
+
+    protected function success(
+        string $title,
+        ?string $body = null,
+    ): void {
 
         Notification::make()
             ->success()
-            ->title(
-                'Security policies saved'
-            )
+            ->title($title)
+            ->body($body)
             ->send();
     }
 }
