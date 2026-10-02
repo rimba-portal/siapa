@@ -28,7 +28,7 @@ class RequestPasswordReset extends BaseRequestPasswordReset
 
         $userAuth = $this->resolveUserAuth($identifier);
 
-        if (! $userAuth) {
+        if (! $userAuth instanceof UserAuth) {
             throw ValidationException::withMessages([
                 'data.email' => 'No matching account was found.',
             ]);

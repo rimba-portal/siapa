@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Rimba\Who\Actions;
 
+use Illuminate\Contracts\Auth\Authenticatable;
 use Rimba\Who\Enums\AuthenticationStatus;
 use Rimba\Who\Services\IdentityAuthenticatorService;
 use Rimba\Who\Services\IdentityResolverService;
 use Rimba\Who\Support\AuthenticationResult;
+use Rimba\Who\Support\ExternalIdentity;
 
 final readonly class AuthenticateUser
 {
@@ -20,11 +22,11 @@ final readonly class AuthenticateUser
             $result = $this->identityAuthenticatorService->existing((string) $identityResolutionResult->provider(), $identifier, $password);
         } else {
             $external = $this->identityResolverService->find($identifier);
-            $result = $external ? $this->identityAuthenticatorService->external($external, $password) : new AuthenticationResult(AuthenticationStatus::NotFound, 'identity', reason: 'user_not_found');
+            $result = $external instanceof ExternalIdentity ? $this->identityAuthenticatorService->external($external, $password) : new AuthenticationResult(AuthenticationStatus::NotFound, 'identity', reason: 'user_not_found');
         }
 
         $this->recordAuthenticationAttempt->handle($identifier, $result);
-        if ($result->succeeded() && $result->user) {
+        if ($result->succeeded() && $result->user instanceof Authenticatable) {
             $this->loginUser->handle($result->user, $remember);
         }
 

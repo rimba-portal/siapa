@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Rimba\Who\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Unguarded;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Rimba\Who\Enums\SecurityLevel;
 
+#[Unguarded]
 class UserAuth extends Model
 {
-    protected $guarded = [];
-
     protected function casts(): array
     {
         return [

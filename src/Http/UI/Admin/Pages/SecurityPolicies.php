@@ -166,7 +166,7 @@ final class SecurityPolicies extends Page implements HasSchemas
         }
     }
 
-    protected function policySection(
+    private function policySection(
         string $field,
         string $heading,
         string $description,
@@ -186,7 +186,7 @@ final class SecurityPolicies extends Page implements HasSchemas
         return $section;
     }
 
-    protected function securityField(
+    private function securityField(
         string $field,
     ): CheckboxList {
         return CheckboxList::make($field)
@@ -199,7 +199,7 @@ final class SecurityPolicies extends Page implements HasSchemas
             ->columns(1);
     }
 
-    protected function loadRoutes(): array
+    private function loadRoutes(): array
     {
         $file = base_path(
             self::ROUTES_FILE,
@@ -216,7 +216,7 @@ final class SecurityPolicies extends Page implements HasSchemas
             : [];
     }
 
-    protected function routeOptions(): array
+    private function routeOptions(): array
     {
         return collect($this->routes)
             ->filter(
@@ -235,7 +235,7 @@ final class SecurityPolicies extends Page implements HasSchemas
             ->all();
     }
 
-    protected function success(
+    private function success(
         string $title,
         ?string $body = null,
     ): void {
@@ -246,7 +246,7 @@ final class SecurityPolicies extends Page implements HasSchemas
             ->send();
     }
 
-    protected function failure(
+    private function failure(
         string $title,
         ?string $body = null,
     ): void {
