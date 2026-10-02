@@ -14,6 +14,13 @@ final class LoginUser
     {
         Auth::login($user, $remember);
         request()->session()->regenerate();
-        UserAuth::query()->where('user_id', $user->getAuthIdentifier())->update(['last_login_at' => now()]);
+        UserAuth::query()
+            ->where('user_id', $user->getAuthIdentifier())
+            ->update(
+                [
+                    'last_login_at' => now(),
+                    'last_face_auth_at' => null,
+                ]
+            );
     }
 }
