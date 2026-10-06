@@ -58,7 +58,6 @@ class WhoServiceProvider extends BitesServiceProvider
                     'web',
                     EnsureSecurityLevel::class
                 );
-
         });
     }
 
