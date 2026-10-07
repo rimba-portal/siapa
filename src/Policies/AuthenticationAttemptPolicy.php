@@ -13,7 +13,7 @@ final class AuthenticationAttemptPolicy
     {
         return (bool) (
             $user->staff?->hasRole(
-                config('bites_auth.roles.admin')
+                config('bites.auth.roles.admin')
             ) ?? false
         );
     }
@@ -25,7 +25,7 @@ final class AuthenticationAttemptPolicy
         return $user->getAuthIdentifier() === $record->user_id
             || (
                 $user->staff?->hasRole(
-                    config('bites_auth.roles.admin')
+                    config('bites.auth.roles.admin')
                 ) ?? false
             );
     }
