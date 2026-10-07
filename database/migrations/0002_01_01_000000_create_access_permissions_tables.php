@@ -13,8 +13,7 @@ return new class extends Migration
 
             $table->string('name');
             $table->string('guard_name');
-            $table->string('description')->nullable();
-
+            // $table->string('description')->nullable();
             $table->timestamps();
 
             $table->unique(['name', 'guard_name']);

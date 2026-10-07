@@ -13,11 +13,11 @@ class SnapPicture extends BaseFileUpload
 {
     protected string $view = 'bites::components.snap-picture';
 
-    protected string $disk = 'user_photo';
+    protected string|Closure|null $disk = 'user_photo';
 
-    protected ?string $directory = null;
+    protected string|Closure|null $directory = null;
 
-    protected string $visibility = 'public';
+    protected string|Closure|null $visibility = 'public';
 
     protected ?string $targetField = null;
 
@@ -45,26 +45,26 @@ class SnapPicture extends BaseFileUpload
 
     protected bool $requireAllShots = true;
 
-    public function disk(string $disk): static
+    public function disk(string|Closure|null $name): static
     {
         $this->disk = $disk;
 
         return $this;
     }
 
-    public function directory(?string $directory): static
-    {
-        $this->directory = $directory;
+    // public function directory(string | Closure | null $directory): static
+    // {
+    //     $this->directory = $directory;
 
-        return $this;
-    }
+    //     return $this;
+    // }
 
-    public function visibility(string $visibility): static
-    {
-        $this->visibility = $visibility;
+    // public function visibility(string|Closure $visibility): static
+    // {
+    //     $this->visibility = $visibility;
 
-        return $this;
-    }
+    //     return $this;
+    // }
 
     public function targetField(string $fieldName): static
     {
@@ -137,10 +137,10 @@ class SnapPicture extends BaseFileUpload
         return $this;
     }
 
-    public function getDisk(): string
-    {
-        return $this->disk;
-    }
+    // public function getDisk(): Filesystem
+    // {
+    //     return $this->disk;
+    // }
 
     public function getDirectory(): ?string
     {
@@ -209,7 +209,7 @@ class SnapPicture extends BaseFileUpload
         return $this->shouldDeleteOnEdit;
     }
 
-    public function multiple(array $shots = []): static
+    public function multiple(bool|Closure $condition = true): static
     {
         $this->multipleMode = true;
         $this->shotSequence = $shots;
