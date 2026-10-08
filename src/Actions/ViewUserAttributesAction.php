@@ -6,6 +6,7 @@ namespace Rimba\Who\Actions;
 
 use Filament\Actions\Action;
 use Filament\Infolists\Components\KeyValueEntry;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
@@ -44,12 +45,21 @@ class ViewUserAttributesAction extends Action
 
             Section::make('Roles')
                 ->schema([
-                    KeyValueEntry::make('roles')
-                        ->label('Assigned Roles')
-                        ->state(
-                            $this->getRoles()
-                        ),
-                ])->secondary(),
+                    TextEntry::make('staff_roles')
+                        ->label('Staff Roles')
+                        ->badge()
+                        ->bulleted()
+                        ->state(fn (): array => $this->getStaffRoles())
+                        ->placeholder('No staff roles assigned'),
+
+                    TextEntry::make('job_position_roles')
+                        ->label('Job Position Roles')
+                        ->badge()
+                        ->state(fn (): array => $this->getJobPositionRoles())
+                        ->placeholder('No job position roles assigned'),
+                ])
+                ->columns(2)
+                ->secondary(),
             Section::make('Attributes')
                 ->schema([
                     KeyValueEntry::make('user_attributes')
@@ -101,7 +111,10 @@ class ViewUserAttributesAction extends Action
             ->all();
     }
 
-    protected function getRoles(): array
+    /**
+     * @return array<int, string>
+     */
+    protected function getStaffRoles(): array
     {
         $user = Auth::user();
 
@@ -109,21 +122,35 @@ class ViewUserAttributesAction extends Action
             return [];
         }
 
-        return [
-            'Staff Roles' => collect(
-                $user->staff?->roles ?? []
-            )
-                ->pluck('name')
-                ->sort()
-                ->implode(', '),
+        return collect($user->staff?->roles ?? [])
+            ->pluck('name')
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+    }
 
-            'Job Position Roles' => collect(
-                $user->staff?->jobPosition?->roles ?? []
-            )
-                ->pluck('name')
-                ->sort()
-                ->implode(', '),
-        ];
+    /**
+     * @return array<int, string>
+     */
+    protected function getJobPositionRoles(): array
+    {
+        $user = Auth::user();
+
+        if ($user === null) {
+            return [];
+        }
+
+        return collect(
+            $user->staff?->jobPosition?->roles ?? []
+        )
+            ->pluck('name')
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
     }
 
     protected function normalizeValue(mixed $value): string
