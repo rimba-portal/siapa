@@ -16,13 +16,16 @@ class PermissionsTable
     {
         return $table
             ->columns([
-                TextColumn::make('name')
-                    ->searchable(),
-                TextColumn::make('guard_name')
-                    ->searchable(),
                 TextColumn::make('roles.name'),
                 TextColumn::make('description')
                     ->searchable(),
+                TextColumn::make('name')
+                    ->label('Permission Name')
+                    ->searchable(),
+                // TextColumn::make('guard_name')
+                //     ->searchable(),
+                // TextColumn::make('action'),
+
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
