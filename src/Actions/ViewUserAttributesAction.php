@@ -12,6 +12,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Rimba\Attributing\Support\AttributeRoleName;
 
 class ViewUserAttributesAction extends Action
 {
@@ -136,18 +137,19 @@ class ViewUserAttributesAction extends Action
      */
     protected function getJobPositionRoles(): array
     {
-        $user = Auth::user();
+        $staff = Auth::user()?->staff;
 
-        if ($user === null) {
+        if (! $staff) {
             return [];
         }
 
-        return collect(
-            $user->staff?->jobPosition?->roles ?? []
-        )
-            ->pluck('name')
-            ->filter()
-            ->unique()
+        return $staff->getRoleNames()
+            ->filter(
+                fn (string $role): bool => str_starts_with(
+                    $role,
+                    'job_position'.AttributeRoleName::DELIMITER,
+                ),
+            )
             ->sort()
             ->values()
             ->all();
