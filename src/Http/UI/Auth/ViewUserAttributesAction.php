@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Rimba\Who\Actions;
+namespace Rimba\Who\Http\UI\Auth;
 
 use Filament\Actions\Action;
 use Filament\Infolists\Components\KeyValueEntry;
@@ -46,18 +46,30 @@ class ViewUserAttributesAction extends Action
 
             Section::make('Roles')
                 ->schema([
+                    TextEntry::make('other_roles')
+                        ->label('Job Roles')
+                        ->badge()
+                        ->bulleted()
+                        ->state(fn (): array => $this->getRemainingRoles())
+                        ->placeholder('No job roles assigned'),
+                    TextEntry::make('user_roles')
+                        ->label('User Roles')
+                        ->badge()
+                        ->bulleted()
+                        ->state(fn (): array => $this->getUserRoles())
+                        ->placeholder('No staff roles assigned'),
+                    TextEntry::make('job_position_roles')
+                        ->label('Job Position Roles')
+                        ->badge()
+                        ->bulleted()
+                        ->state(fn (): array => $this->getJobPositionRoles())
+                        ->placeholder('No job position roles assigned'),
                     TextEntry::make('staff_roles')
                         ->label('Staff Roles')
                         ->badge()
                         ->bulleted()
                         ->state(fn (): array => $this->getStaffRoles())
                         ->placeholder('No staff roles assigned'),
-
-                    TextEntry::make('job_position_roles')
-                        ->label('Job Position Roles')
-                        ->badge()
-                        ->state(fn (): array => $this->getJobPositionRoles())
-                        ->placeholder('No job position roles assigned'),
                 ])
                 ->columns(2)
                 ->secondary(),
@@ -115,20 +127,38 @@ class ViewUserAttributesAction extends Action
     /**
      * @return array<int, string>
      */
-    protected function getStaffRoles(): array
+    protected function getUserRoles(): array
     {
         $user = Auth::user();
-
         if ($user === null) {
             return [];
         }
 
         return collect($user->staff?->roles ?? [])
-            ->pluck('name')
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values()
+            ->pluck('name')->unique()->sort()->values()
+            ->filter(fn (string $role): bool => str_starts_with(
+                $role,
+                'user'.AttributeRoleName::DELIMITER,
+            ), )
+            ->all();
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function getStaffRoles(): array
+    {
+        $user = Auth::user();
+        if ($user === null) {
+            return [];
+        }
+
+        return collect($user->staff?->roles ?? [])
+            ->pluck('name')->unique()->sort()->values()
+            ->filter(fn (string $role): bool => str_starts_with(
+                $role,
+                'staff'.AttributeRoleName::DELIMITER,
+            ), )
             ->all();
     }
 
@@ -137,21 +167,42 @@ class ViewUserAttributesAction extends Action
      */
     protected function getJobPositionRoles(): array
     {
-        $staff = Auth::user()?->staff;
-
-        if (! $staff) {
+        $user = Auth::user();
+        if ($user === null) {
             return [];
         }
 
-        return $staff->getRoleNames()
+        return collect($user->staff?->roles ?? [])
+            ->pluck('name')->unique()->sort()->values()
+            ->filter(fn (string $role): bool => str_starts_with(
+                $role,
+                'job_position'.AttributeRoleName::DELIMITER,
+            ), )
+            ->all();
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function getRemainingRoles(): array
+    {
+        $user = Auth::user();
+        if ($user === null) {
+            return [];
+        }
+
+        $excludedPrefixes = [
+            'user'.AttributeRoleName::DELIMITER,
+            'staff'.AttributeRoleName::DELIMITER,
+            'job_position'.AttributeRoleName::DELIMITER,
+        ];
+
+        return collect($user->staff?->roles ?? [])
+            ->pluck('name')->unique()->sort()->values()
             ->filter(
-                fn (string $role): bool => str_starts_with(
-                    $role,
-                    'job_position'.AttributeRoleName::DELIMITER,
-                ),
+                fn (string $role): bool => collect($excludedPrefixes)
+                    ->every(fn (string $prefix): bool => ! str_starts_with($role, $prefix))
             )
-            ->sort()
-            ->values()
             ->all();
     }
 
