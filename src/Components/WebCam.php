@@ -15,8 +15,19 @@ class WebCam extends Field
     {
         $state = $this->getState();
 
-        if (blank($state)) {
+        if (! is_string($state) || blank($state)) {
             return null;
+        }
+
+        if (str_starts_with($state, 'data:image/')) {
+            return $state;
+        }
+
+        if (
+            str_starts_with($state, 'http://')
+            || str_starts_with($state, 'https://')
+        ) {
+            return $state;
         }
 
         return Storage::disk('public')->url($state);

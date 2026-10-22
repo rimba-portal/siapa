@@ -2,21 +2,24 @@
     <div
         x-data="{
             stream: null,
-            photoUrl: null,
-            
-            init() {
-                // Initialize state from existing value if any
-                this.photoUrl = @js($getState());
-            },
+            photoUrl: @js($getPhotoUrl()),
 
             startCamera() {
-                navigator.mediaDevices.getUserMedia({ video: true, audio: false })
-                    .then(stream => {
+                navigator.mediaDevices
+                    .getUserMedia({
+                        video: true,
+                        audio: false,
+                    })
+                    .then((stream) => {
                         this.stream = stream;
                         this.$refs.video.srcObject = stream;
                     })
-                    .catch(err => {
-                        console.error('Webcam not found or permission denied:', err);
+                    .catch((error) => {
+                        console.error(
+                            'Unable to access webcam:',
+                            error
+                        );
+
                         alert('Unable to access webcam.');
                     });
             },
@@ -24,67 +27,85 @@
             takePhoto() {
                 const video = this.$refs.video;
                 const canvas = document.createElement('canvas');
+
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
-                canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-                
-                // Convert frame to base64
-                this.photoUrl = canvas.toDataURL('image/jpeg');
-                
-                // Update Filament's wire:model / state
-                $wire.set('{{ $getStatePath() }}', this.photoUrl);
-                
+
+                canvas
+                    .getContext('2d')
+                    .drawImage(
+                        video,
+                        0,
+                        0,
+                        canvas.width,
+                        canvas.height
+                    );
+
+                const photo = canvas.toDataURL(
+                    'image/jpeg',
+                    0.9
+                );
+
+                this.photoUrl = photo;
+
+                $wire.set(
+                    '{{ $getStatePath() }}',
+                    photo
+                );
+
                 this.stopCamera();
             },
 
             stopCamera() {
-                if (this.stream) {
-                    this.stream.getTracks().forEach(track => track.stop());
-                    this.stream = null;
+                if (! this.stream) {
+                    return;
                 }
-            }
-        }"
-        @class(['space-y-4'])
-    >
-        <!-- Camera Live View -->
-        <div @class(['relative', 'flex', 'justify-center', 'overflow-hidden', 'rounded-lg', 'border', 'border-gray-300', 'bg-gray-50', 'p-2', 'dark:border-gray-600', 'dark:bg-gray-800'])>
-            <video
-                x-ref="video"
-                autoplay
-                playsinline
-                @class(['w-full', 'max-w-md', 'rounded-lg'])
-                x-show="stream"
-            ></video>
 
-            <!-- Snapshot Preview -->
+                this.stream
+                    .getTracks()
+                    .forEach((track) => track.stop());
+
+                this.stream = null;
+            },
+
+            clearPhoto() {
+                this.stopCamera();
+
+                this.photoUrl = null;
+
+                $wire.set(
+                    '{{ $getStatePath() }}',
+                    null
+                );
+            },
+        }"
+        class="space-y-4"
+    >
+        <div class="relative flex justify-center overflow-hidden rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-800">
+            <video x-ref="video" autoplay muted playsinline x-show="stream" class="w-full max-w-md rounded-lg"></video>
+
             <img
-                :src="photoUrl"
                 x-show="photoUrl && ! stream"
-                @class(['w-full', 'max-w-md', 'rounded-lg'])
-                alt="Captured Photo"
+                x-bind:src="photoUrl"
+                class="w-full max-w-md rounded-lg object-cover"
+                alt="Profile Photo"
             />
 
-            <div x-show="! stream && ! photoUrl" @class(['py-16', 'text-center', 'text-gray-400', 'dark:text-gray-500'])>
-                Webcam is turned off
+            <div x-show="! stream && ! photoUrl" class="py-16 text-center text-gray-400 dark:text-gray-500">
+                No profile photo captured
             </div>
         </div>
 
-        <!-- Controls -->
-        <div @class(['flex', 'gap-2'])>
+        <div class="flex gap-2">
             <x-filament::button type="button" x-show="! stream" x-on:click="startCamera()">
-                Start Camera
+                <span x-text="photoUrl ? 'Retake Photo' : 'Start Camera'"></span>
             </x-filament::button>
 
             <x-filament::button type="button" color="success" x-show="stream" x-on:click="takePhoto()">
                 Capture Photo
             </x-filament::button>
 
-            <x-filament::button
-                type="button"
-                color="danger"
-                x-show="photoUrl || stream"
-                x-on:click=" stopCamera(); photoUrl = null; $wire.set('{{ $getStatePath() }}', null); "
-            >
+            <x-filament::button type="button" color="danger" x-show="photoUrl || stream" x-on:click="clearPhoto()">
                 Clear
             </x-filament::button>
         </div>

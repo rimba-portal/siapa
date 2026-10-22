@@ -17,7 +17,8 @@ class RolesTable
         return $table
             ->columns([
                 TextColumn::make('name')
-                    ->searchable(),
+                    ->searchable()
+                    ->copyable(),
                 TextColumn::make('description')
                     ->searchable()
                     ->sortable(),
